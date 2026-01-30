@@ -45,12 +45,14 @@ export default function ProductPage() {
     const currentPriceDisplay = unitPrice.toFixed(2)
     const totalPriceDisplay = (unitPrice * quantity).toFixed(2)
 
+    console.log("ProductPage Rendered"); // Debug Render
+
     const handleAddToCart = () => {
         addItem({
             product: {
                 ...product,
                 price: basePrice,
-                imageUrl: product.images[0] // Fallback
+                imageUrl: product.images?.[0] || '/placeholder-1.jpg'
             },
             quantity,
             selectedSize,
@@ -90,11 +92,8 @@ export default function ProductPage() {
                     </div>
 
                     {/* Right: Product Info & Actions */}
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.5, delay: 0.2 }}
-                        className="flex flex-col h-full"
+                    <div
+                        className="flex flex-col h-full relative z-10"
                     >
                         {/* Breadcrumb / Category */}
                         <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
@@ -157,21 +156,24 @@ export default function ProductPage() {
                             </p>
                         </div>
 
+
+
                         {/* Actions: Quantity & Add to Cart */}
-                        <div className="flex gap-4 mb-10">
+                        <div className="flex gap-4 mb-10 relative z-20">
                             <div className="flex items-center bg-gray-100 rounded-full px-4 border border-gray-200 shrink-0">
-                                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="p-2 hover:text-purple-600 transition-colors">
+                                <button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="p-2 hover:text-purple-600 transition-colors">
                                     <Minus size={16} />
                                 </button>
                                 <span className="w-8 text-center font-medium mx-2">{quantity}</span>
-                                <button onClick={() => setQuantity(quantity + 1)} className="p-2 hover:text-purple-600 transition-colors">
+                                <button type="button" onClick={() => setQuantity(quantity + 1)} className="p-2 hover:text-purple-600 transition-colors">
                                     <Plus size={16} />
                                 </button>
                             </div>
 
                             <button
+                                type="button"
                                 onClick={handleAddToCart}
-                                className="flex-1 bg-gray-900 text-white rounded-full font-bold text-lg hover:bg-black transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center justify-center gap-3"
+                                className="flex-1 bg-gray-900 text-white rounded-full font-bold text-lg hover:bg-black transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center justify-center gap-3 relative z-30 cursor-pointer"
                             >
                                 Ajouter au panier
                                 <span className="font-normal text-gray-400">|</span>
@@ -201,7 +203,7 @@ export default function ProductPage() {
                             </div>
                         </div>
 
-                    </motion.div>
+                    </div>
                 </div>
             </div>
         </main>
