@@ -49,15 +49,27 @@ export default function AdminOrdersPage() {
     }
 
     const updateStatus = async (orderId: string, newStatus: string) => {
-        const { error } = await supabase
-            .from('orders')
-            .update({ status: newStatus })
-            .eq('id', orderId)
+        setLoading(true) // Optional: show loading state during update
+        try {
+            const res = await fetch('/api/admin/orders/update-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId, status: newStatus })
+            })
 
-        if (error) {
-            alert('Erreur lors de la mise à jour')
-        } else {
+            if (!res.ok) throw new Error('Failed to update')
+
+            // Optimistic update or refetch
             setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus as any } : o))
+
+            if (newStatus === 'shipped') {
+                alert('Statut mis à jour ! Email "Expédié" envoyé au client. 📧')
+            }
+        } catch (error) {
+            console.error(error)
+            alert('Erreur lors de la mise à jour du statut')
+        } finally {
+            setLoading(false)
         }
     }
 

@@ -1,0 +1,59 @@
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+import { resend } from "@/lib/resend";
+import { OrderShippedEmail } from "@/components/emails/order-shipped";
+import React from "react"; // Explicit React import for JSX
+
+export async function POST(req: NextRequest) {
+    try {
+        const { orderId, status } = await req.json();
+
+        const supabaseAdmin = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+
+        const { data: order, error: fetchError } = await supabaseAdmin
+            .from('orders')
+            .select('*, user:users(email)')
+            .eq('id', orderId)
+            .single();
+
+        if (fetchError || !order) {
+            return new NextResponse("Order not found", { status: 404 });
+        }
+
+        const { error: updateError } = await supabaseAdmin
+            .from('orders')
+            .update({ status })
+            .eq('id', orderId);
+
+        if (updateError) {
+            return new NextResponse("Failed to update status", { status: 500 });
+        }
+
+        if (status === 'shipped' && order.user?.email) {
+            try {
+                await resend.emails.send({
+                    from: 'Fleuris <onboarding@resend.dev>',
+                    to: order.user.email,
+                    subject: 'Votre commande est en route ! 🚚',
+                    react: <OrderShippedEmail
+                        orderId={order.id}
+                        customerName={order.recipient_name}
+                        recipientName={order.recipient_name}
+                        deliveryDate={order.delivery_date}
+                    />
+                });
+                console.log(`📧 Shipped email sent to ${order.user.email}`);
+            } catch (emailError) {
+                console.error("❌ Failed to send email", emailError);
+            }
+        }
+
+        return NextResponse.json({ success: true });
+
+    } catch (error: any) {
+        return new NextResponse(`Error: ${error.message}`, { status: 500 });
+    }
+}

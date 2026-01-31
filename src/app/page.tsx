@@ -1,6 +1,7 @@
 import { Navbar } from '@/components/navbar'
 import { OccasionCard } from '@/components/occasion-card'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -10,10 +11,10 @@ export const metadata: Metadata = {
 
 export default function Home() {
   const occasions = [
-    { title: "Pour un Anniversaire", description: "Célébrez une année de plus avec éclat.", slug: "anniversaire", colorClass: "bg-pink-500" },
-    { title: "Déclarer son Amour", description: "Les plus belles roses pour dire je t'aime.", slug: "amour", colorClass: "bg-red-600" },
-    { title: "Remerciements", description: "Exprimez votre gratitude avec élégance.", slug: "remerciements", colorClass: "bg-yellow-400" },
-    { title: "Deuil et Soutien", description: "Des fleurs pour accompagner vos pensées.", slug: "deuil", colorClass: "bg-purple-900" },
+    { title: "Pour un Anniversaire", description: "Célébrez une année de plus avec éclat.", slug: "anniversaire", colorClass: "bg-pink-500", imageUrl: "/images/bouquet-anniversaire.png" },
+    { title: "Déclarer son Amour", description: "Les plus belles roses pour dire je t'aime.", slug: "amour", colorClass: "bg-red-600", imageUrl: "/images/bouquet-amour.png" },
+    { title: "Remerciements", description: "Exprimez votre gratitude avec élégance.", slug: "remerciements", colorClass: "bg-yellow-400", imageUrl: "/images/bouquet-remerciements.png" },
+    { title: "Deuil et Soutien", description: "Des fleurs pour accompagner vos pensées.", slug: "deuil", colorClass: "bg-purple-900", imageUrl: "/images/bouquet-deuil.png" },
   ]
 
   return (
@@ -47,18 +48,16 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Visual Abstract Art / Placeholder for Hero Image */}
-          <div className="relative h-[500px] w-full bg-gray-100 rounded-[3rem] overflow-hidden group">
-            {/* Imagine a beautiful flower video or high-res image here */}
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-100 via-pink-50 to-white opacity-80" />
-            <div className="absolute inset-0 flex items-center justify-center text-gray-300 font-serif italic text-4xl">
-              Visuel Bouquet Signature
-            </div>
-
-            {/* Floating Element 1 */}
-            <div className="absolute top-10 right-10 w-24 h-24 bg-white/40 backdrop-blur-md rounded-full shadow-lg animate-pulse" />
-            {/* Floating Element 2 */}
-            <div className="absolute bottom-20 left-10 w-32 h-32 bg-pink-200/20 backdrop-blur-md rounded-full shadow-lg" />
+          {/* Hero Image */}
+          <div className="relative h-[500px] w-full rounded-[3rem] overflow-hidden shadow-2xl">
+            <Image
+              src="/images/flowers-delivery.png"
+              alt="Bouquet de fleurs artisanal Fleuris"
+              fill
+              className="object-cover"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10" />
           </div>
         </div>
       </section>

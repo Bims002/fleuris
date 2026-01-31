@@ -11,10 +11,13 @@ type ProductData = {
     id?: string
     name: string
     description: string
+    longDescription?: string
     price: string // Handling as string for input, converting to number for DB
     category: string
     is_available: boolean
     images: string[]
+    rating?: number
+    reviews?: number
 }
 
 const CATEGORIES = [
@@ -36,10 +39,13 @@ export function ProductForm({ initialData }: { initialData?: ProductData }) {
     const [formData, setFormData] = useState<ProductData>({
         name: '',
         description: '',
+        longDescription: '',
         price: '',
         category: 'anniversaire',
         is_available: true,
         images: [],
+        rating: 4.8,
+        reviews: 0,
         ...initialData
     })
 
@@ -94,11 +100,13 @@ export function ProductForm({ initialData }: { initialData?: ProductData }) {
         const payload = {
             name: formData.name,
             description: formData.description,
+            long_description: formData.longDescription || formData.description,
             price: Math.round(parseFloat(formData.price) * 100), // Convert Euros to Cents for DB
             category: formData.category,
             is_available: formData.is_available,
             images: formData.images,
-            // Add slug if needed
+            rating: formData.rating || 4.8,
+            reviews: formData.reviews || 0,
         }
 
         let error
@@ -174,13 +182,25 @@ export function ProductForm({ initialData }: { initialData?: ProductData }) {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Description courte</label>
                             <textarea
                                 name="description"
-                                rows={4}
+                                rows={3}
                                 value={formData.description}
                                 onChange={handleChange}
-                                placeholder="Description détaillée..."
+                                placeholder="Description courte affichée dans la liste..."
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Description détaillée</label>
+                            <textarea
+                                name="longDescription"
+                                rows={6}
+                                value={formData.longDescription}
+                                onChange={handleChange}
+                                placeholder="Description complète affichée sur la page produit..."
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                             />
                         </div>
@@ -255,6 +275,33 @@ export function ProductForm({ initialData }: { initialData?: ProductData }) {
                                     <option key={cat.value} value={cat.value}>{cat.label}</option>
                                 ))}
                             </select>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Note (0-5)</label>
+                                <input
+                                    name="rating"
+                                    type="number"
+                                    step="0.1"
+                                    min="0"
+                                    max="5"
+                                    value={formData.rating}
+                                    onChange={handleChange}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Nb d'avis</label>
+                                <input
+                                    name="reviews"
+                                    type="number"
+                                    min="0"
+                                    value={formData.reviews}
+                                    onChange={handleChange}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                />
+                            </div>
                         </div>
                     </div>
 

@@ -36,7 +36,10 @@ export default function EditProductPage() {
     // Adapter les données pour le formulaire si besoin (ex: price number -> string)
     const formattedData = {
         ...product,
-        price: (product.price / 100).toString()
+        price: (product.price / 100).toString(),
+        longDescription: product.long_description || product.description,
+        rating: product.rating || 4.8,
+        reviews: product.reviews || 0
     }
 
     return <ProductForm initialData={formattedData} />

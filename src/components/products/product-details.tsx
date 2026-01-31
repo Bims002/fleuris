@@ -47,7 +47,7 @@ export function ProductDetails({ product }: { product: any }) {
     // Mock extra data if missing (handling legacy data)
     const rating = product.rating || 4.8
     const reviews = product.reviews || 124
-    const longDescription = product.longDescription || product.description
+    const longDescription = product.long_description || product.description
 
     return (
         <main className="min-h-screen bg-white">
@@ -141,7 +141,7 @@ export function ProductDetails({ product }: { product: any }) {
                                 ))}
                             </div>
                             <p className="text-xs text-gray-500 mt-3 text-center">
-                                {selectedSize === 'classic' ? 'Environ 20 tiges' : selectedSize === 'generous' ? 'Environ 30 tiges (+40%)' : 'Environ 40 tiges (+80%)'}
+                                {selectedSize === 'classic' ? 'Bouquet de 20 tiges' : selectedSize === 'generous' ? 'Bouquet de 30 tiges (+40%)' : 'Bouquet de 40 tiges (+80%)'}
                             </p>
                         </div>
 

@@ -45,8 +45,6 @@ export function Navbar() {
 
     const navLinks = [
         { name: 'Nos Bouquets', href: '/products' },
-        { name: 'Occasions', href: '/products' }, // Could be a specific route later
-        { name: 'Plantes', href: '/products?category=plantes' },
         { name: 'À Propos', href: '/about' },
     ]
 

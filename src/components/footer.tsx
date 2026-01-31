@@ -37,9 +37,9 @@ export function Footer() {
                         <h4 className="font-serif font-bold text-gray-900 mb-6">Boutique</h4>
                         <ul className="space-y-3 text-sm text-gray-500">
                             <li><Link href="/products" className="hover:text-purple-600 transition-colors">Tous les Bouquets</Link></li>
-                            <li><Link href="/products?category=plantes" className="hover:text-purple-600 transition-colors">Plantes Vertes</Link></li>
                             <li><Link href="/products?occasion=anniversaire" className="hover:text-purple-600 transition-colors">Anniversaire</Link></li>
-                            <li><Link href="/products?occasion=mariage" className="hover:text-purple-600 transition-colors">Mariage</Link></li>
+                            <li><Link href="/products?occasion=amour" className="hover:text-purple-600 transition-colors">Amour & Romance</Link></li>
+                            <li><Link href="/products?occasion=remerciements" className="hover:text-purple-600 transition-colors">Remerciements</Link></li>
                             <li><Link href="/products?occasion=deuil" className="hover:text-purple-600 transition-colors">Deuil</Link></li>
                         </ul>
                     </div>
@@ -61,7 +61,6 @@ export function Footer() {
                         <ul className="space-y-3 text-sm text-gray-500">
                             <li><Link href="/legal/terms" className="hover:text-purple-600 transition-colors">CGV</Link></li>
                             <li><Link href="/legal/privacy" className="hover:text-purple-600 transition-colors">Politique de Confidentialité</Link></li>
-                            <li><Link href="/legal/mentions" className="hover:text-purple-600 transition-colors">Mentions Légales</Link></li>
                             <li><Link href="/legal/cookies" className="hover:text-purple-600 transition-colors">Gestion des cookies</Link></li>
                         </ul>
                     </div>

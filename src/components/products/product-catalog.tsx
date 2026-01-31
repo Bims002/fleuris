@@ -6,13 +6,29 @@ import { FilterDropdown } from '@/components/filter-dropdown'
 import { Product } from '@/types/product'
 import { useState, useMemo, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
+import { useSearchParams } from 'next/navigation'
 
 export function ProductCatalog() {
+    const searchParams = useSearchParams()
     const [products, setProducts] = useState<Product[]>([])
     const [loading, setLoading] = useState(true)
     const [occasionFilter, setOccasionFilter] = useState<string | null>(null)
     const [priceFilter, setPriceFilter] = useState<string | null>(null)
     const supabase = createClient()
+
+
+    // Initialize filters from URL params
+    useEffect(() => {
+        const category = searchParams.get('category')
+        const occasion = searchParams.get('occasion')
+
+        if (category) {
+            setOccasionFilter(category)
+        }
+        if (occasion) {
+            setOccasionFilter(occasion)
+        }
+    }, [searchParams])
 
     useEffect(() => {
         const fetchProducts = async () => {
