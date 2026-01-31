@@ -5,13 +5,17 @@ import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Navbar } from '@/components/navbar'
-import { Package, ChevronRight, Clock, CheckCircle, XCircle } from 'lucide-react'
+import { Package, ChevronRight, Clock, CheckCircle, XCircle, Truck } from 'lucide-react'
+import { formatDeliveryDate, formatDeliveryTime } from '@/lib/date-utils'
 
 type Order = {
     id: string
     created_at: string
     total_amount: number
     status: string
+    delivery_date: string
+    delivery_time: 'morning' | 'afternoon'
+    recipient_name: string
 }
 
 export default function OrderHistoryPage() {
@@ -25,7 +29,7 @@ export default function OrderHistoryPage() {
             const { data: { user } } = await supabase.auth.getUser()
 
             if (!user) {
-                router.push('/login')
+                router.push('/login?redirect=/account/orders')
                 return
             }
 
@@ -46,12 +50,16 @@ export default function OrderHistoryPage() {
 
     const getStatusBadge = (status: string) => {
         switch (status) {
-            case 'paid':
-                return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700"><CheckCircle size={12} /> Payé</span>
             case 'pending':
                 return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700"><Clock size={12} /> En attente</span>
+            case 'processing':
+                return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700"><Package size={12} /> En préparation</span>
+            case 'shipped':
+                return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700"><Truck size={12} /> Expédiée</span>
+            case 'delivered':
+                return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700"><CheckCircle size={12} /> Livrée</span>
             case 'cancelled':
-                return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700"><XCircle size={12} /> Annulé</span>
+                return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700"><XCircle size={12} /> Annulée</span>
             default:
                 return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-50 text-gray-700">{status}</span>
         }
@@ -86,24 +94,32 @@ export default function OrderHistoryPage() {
                                 key={order.id}
                                 className="block bg-white border border-gray-100 rounded-xl p-6 hover:shadow-md transition-shadow group"
                             >
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-1">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div className="space-y-2">
                                         <div className="flex items-center gap-3">
                                             <span className="font-mono text-sm text-gray-500">#{order.id.slice(0, 8)}</span>
                                             {getStatusBadge(order.status)}
                                         </div>
+                                        <div className="text-sm text-gray-900 font-medium">
+                                            {order.recipient_name}
+                                        </div>
                                         <div className="text-sm text-gray-500">
-                                            {new Date(order.created_at).toLocaleDateString('fr-FR', {
+                                            Commandé le {new Date(order.created_at).toLocaleDateString('fr-FR', {
                                                 year: 'numeric',
                                                 month: 'long',
                                                 day: 'numeric'
                                             })}
                                         </div>
+                                        {order.delivery_date && (
+                                            <div className="text-sm text-purple-600 font-medium">
+                                                📅 Livraison : {formatDeliveryDate(order.delivery_date)} - {formatDeliveryTime(order.delivery_time)}
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="flex items-center gap-6">
                                         <div className="text-right">
-                                            <div className="font-bold text-gray-900">
+                                            <div className="font-bold text-gray-900 text-xl">
                                                 {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(order.total_amount / 100)}
                                             </div>
                                             <div className="text-xs text-gray-400">Total TTC</div>

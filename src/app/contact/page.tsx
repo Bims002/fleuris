@@ -1,13 +1,33 @@
-import { Navbar } from '@/components/navbar'
-import { Metadata } from 'next'
-import { Mail } from 'lucide-react'
+'use client'
 
-export const metadata: Metadata = {
-    title: 'Contact | Fleuris',
-    description: 'Contactez l\'équipe Fleuris pour toute question.',
-}
+import { Navbar } from '@/components/navbar'
+import { Mail, Loader2, CheckCircle } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { contactSchema, type ContactFormData } from '@/lib/validations'
+import { FormInput, FormTextarea } from '@/components/ui/form-fields'
 
 export default function ContactPage() {
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting, isSubmitSuccessful },
+        reset,
+    } = useForm<ContactFormData>({
+        resolver: zodResolver(contactSchema),
+        mode: 'onBlur', // Validation au blur (perte de focus)
+    })
+
+    const onSubmit = async (data: ContactFormData) => {
+        // Simuler l'envoi (à remplacer par une vraie API)
+        await new Promise(resolve => setTimeout(resolve, 1000))
+
+        console.log('Contact form submitted:', data)
+
+        // Réinitialiser le formulaire après succès
+        reset()
+    }
+
     return (
         <main className="min-h-screen bg-white">
             <Navbar />
@@ -31,61 +51,73 @@ export default function ContactPage() {
 
                     <div className="bg-gray-50 rounded-2xl p-8 md:p-12">
                         <h2 className="text-2xl font-bold text-gray-900 mb-6">Envoyez-nous un message</h2>
-                        <form className="space-y-6">
+
+                        {isSubmitSuccessful && (
+                            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <CheckCircle className="text-green-600 flex-shrink-0 mt-0.5" size={20} />
+                                <div>
+                                    <p className="text-sm font-medium text-green-800">Message envoyé avec succès !</p>
+                                    <p className="text-xs text-green-700 mt-1">Nous vous répondrons dans les plus brefs délais.</p>
+                                </div>
+                            </div>
+                        )}
+
+                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                             <div className="grid md:grid-cols-2 gap-6">
-                                <div>
-                                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                                        Nom complet
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="name"
-                                        className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                        placeholder="Jean Dupont"
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                                        Email
-                                    </label>
-                                    <input
-                                        type="email"
-                                        id="email"
-                                        className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                        placeholder="jean@exemple.com"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
-                                    Sujet
-                                </label>
-                                <input
+                                <FormInput
+                                    label="Nom complet"
                                     type="text"
-                                    id="subject"
-                                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                    placeholder="Question sur ma commande"
+                                    placeholder="Jean Dupont"
+                                    required
+                                    disabled={isSubmitting}
+                                    error={errors.name}
+                                    {...register('name')}
+                                />
+
+                                <FormInput
+                                    label="Email"
+                                    type="email"
+                                    placeholder="jean@exemple.com"
+                                    required
+                                    disabled={isSubmitting}
+                                    error={errors.email}
+                                    {...register('email')}
                                 />
                             </div>
 
-                            <div>
-                                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-                                    Message
-                                </label>
-                                <textarea
-                                    id="message"
-                                    rows={6}
-                                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                    placeholder="Décrivez votre demande..."
-                                />
-                            </div>
+                            <FormInput
+                                label="Sujet"
+                                type="text"
+                                placeholder="Question sur ma commande"
+                                required
+                                disabled={isSubmitting}
+                                error={errors.subject}
+                                {...register('subject')}
+                            />
+
+                            <FormTextarea
+                                label="Message"
+                                rows={6}
+                                placeholder="Décrivez votre demande..."
+                                required
+                                disabled={isSubmitting}
+                                error={errors.message}
+                                {...register('message')}
+                            />
 
                             <button
                                 type="submit"
-                                className="w-full md:w-auto px-8 py-3 bg-purple-600 text-white rounded-full font-semibold hover:bg-purple-700 transition-colors"
+                                disabled={isSubmitting}
+                                className="w-full md:w-auto px-8 py-3 bg-purple-600 text-white rounded-full font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
-                                Envoyer le message
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 className="animate-spin" size={20} />
+                                        Envoi en cours...
+                                    </>
+                                ) : (
+                                    'Envoyer le message'
+                                )}
                             </button>
                         </form>
                     </div>

@@ -2,167 +2,239 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { useParams, useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import { Navbar } from '@/components/navbar'
+import { ArrowLeft, Package, MapPin, Calendar, Clock, MessageSquare, CreditCard } from 'lucide-react'
 import Link from 'next/link'
-import { ArrowLeft, MapPin, CreditCard, Mail } from 'lucide-react'
-import Image from 'next/image'
+import { formatDeliveryDate, formatDeliveryTime } from '@/lib/date-utils'
+
+type OrderItem = {
+    id: string
+    product_id: string
+    quantity: number
+    price_at_purchase: number
+    products: {
+        name: string
+        images: string[]
+    }
+}
+
+type Order = {
+    id: string
+    created_at: string
+    status: string
+    total_amount: number
+    recipient_name: string
+    recipient_address: string
+    delivery_date: string
+    delivery_time: 'morning' | 'afternoon'
+    card_message: string | null
+    order_items: OrderItem[]
+}
+
+const STATUS_TIMELINE = {
+    pending: { label: 'En attente', step: 1 },
+    processing: { label: 'En préparation', step: 2 },
+    shipped: { label: 'Expédiée', step: 3 },
+    delivered: { label: 'Livrée', step: 4 },
+}
 
 export default function OrderDetailsPage() {
-    const params = useParams()
-    const router = useRouter()
-    const id = params.id as string
-    const [order, setOrder] = useState<any>(null)
-    const [items, setItems] = useState<any[]>([])
+    const [order, setOrder] = useState<Order | null>(null)
     const [loading, setLoading] = useState(true)
+    const router = useRouter()
+    const params = useParams()
     const supabase = createClient()
 
     useEffect(() => {
-        const fetchOrderDetails = async () => {
+        async function loadOrder() {
             const { data: { user } } = await supabase.auth.getUser()
 
             if (!user) {
-                router.push('/login')
+                router.push('/login?redirect=/account/orders')
                 return
             }
 
-            // Fetch Order Info
-            const { data: orderData, error: orderError } = await supabase
+            const { data, error } = await supabase
                 .from('orders')
-                .select('*')
-                .eq('id', id)
-                .eq('user_id', user.id) // Security check
-                .single()
-
-            if (orderError || !orderData) {
-                console.error(orderError)
-                router.push('/account/orders')
-                return
-            }
-
-            setOrder(orderData)
-
-            // Fetch Order Items with Product details
-            const { data: itemsData, error: itemsError } = await supabase
-                .from('order_items')
                 .select(`
                     *,
-                    product:products (
-                        name,
-                        images
+                    order_items (
+                        *,
+                        products (name, images)
                     )
                 `)
-                .eq('order_id', id)
+                .eq('id', params.id)
+                .eq('user_id', user.id)
+                .single()
 
-            if (itemsData) setItems(itemsData)
+            if (error || !data) {
+                console.error('Error loading order:', error)
+                router.push('/account/orders')
+            } else {
+                setOrder(data as Order)
+            }
+
             setLoading(false)
         }
 
-        fetchOrderDetails()
-    }, [id, router, supabase])
+        loadOrder()
+    }, [params.id, router, supabase])
 
-    if (loading) return <div className="min-h-screen bg-white pt-32 text-center text-gray-500">Chargement...</div>
+    if (loading) {
+        return (
+            <main className="min-h-screen bg-gray-50">
+                <Navbar />
+                <div className="pt-32 pb-20 px-4 flex justify-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+                </div>
+            </main>
+        )
+    }
+
+    if (!order) return null
+
+    const currentStep = STATUS_TIMELINE[order.status as keyof typeof STATUS_TIMELINE]?.step || 1
 
     return (
-        <div className="min-h-screen bg-white">
+        <main className="min-h-screen bg-gray-50">
             <Navbar />
 
-            <main className="pt-32 pb-12 px-6 max-w-3xl mx-auto">
-                <Link href="/account/orders" className="inline-flex items-center text-gray-500 hover:text-gray-900 mb-6 transition-colors">
-                    <ArrowLeft size={18} className="mr-2" />
-                    Retour à mes commandes
-                </Link>
-
-                <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+            <div className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-4xl mx-auto">
                     {/* Header */}
-                    <div className="p-6 border-b border-gray-50 bg-gray-50/50">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div>
-                                <h1 className="text-xl font-bold text-gray-900 font-serif">Commande #{order.id.slice(0, 8)}</h1>
-                                <p className="text-sm text-gray-500">
-                                    Effectuée le {new Date(order.created_at).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                                </p>
+                    <div className="mb-8">
+                        <Link href="/account/orders" className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 mb-4">
+                            <ArrowLeft size={20} />
+                            Retour aux commandes
+                        </Link>
+                        <h1 className="text-3xl font-bold text-gray-900 font-serif">
+                            Commande #{order.id.slice(0, 8)}
+                        </h1>
+                        <p className="text-gray-500 mt-1">
+                            Passée le {new Date(order.created_at).toLocaleDateString('fr-FR', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            })}
+                        </p>
+                    </div>
+
+                    {/* Timeline */}
+                    <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
+                        <h2 className="text-lg font-semibold text-gray-900 mb-6">Suivi de commande</h2>
+                        <div className="flex justify-between items-center">
+                            {Object.entries(STATUS_TIMELINE).map(([key, { label, step }]) => (
+                                <div key={key} className="flex flex-col items-center flex-1">
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${step <= currentStep ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-400'
+                                        }`}>
+                                        {step}
+                                    </div>
+                                    <p className={`text-xs mt-2 text-center ${step <= currentStep ? 'text-purple-600 font-medium' : 'text-gray-400'
+                                        }`}>
+                                        {label}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                        {/* Livraison */}
+                        <div className="bg-white rounded-2xl p-6 shadow-sm">
+                            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <MapPin size={20} className="text-purple-600" />
+                                Informations de livraison
+                            </h2>
+                            <div className="space-y-3 text-sm">
+                                <div>
+                                    <p className="text-gray-500">Destinataire</p>
+                                    <p className="font-medium text-gray-900">{order.recipient_name}</p>
+                                </div>
+                                <div>
+                                    <p className="text-gray-500">Adresse</p>
+                                    <p className="font-medium text-gray-900">{order.recipient_address}</p>
+                                </div>
+                                <div className="pt-3 border-t border-gray-100">
+                                    <div className="flex items-center gap-2 text-purple-600 mb-2">
+                                        <Calendar size={16} />
+                                        <span className="font-medium">{formatDeliveryDate(order.delivery_date)}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-gray-600">
+                                        <Clock size={16} />
+                                        <span>{formatDeliveryTime(order.delivery_time)}</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${order.status === 'paid' ? 'bg-green-100 text-green-800' :
-                                        order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'
-                                    }`}>
-                                    {order.status === 'paid' ? 'Payée' : order.status === 'pending' ? 'En attente' : order.status}
-                                </span>
+                        </div>
+
+                        {/* Message personnalisé */}
+                        {order.card_message && (
+                            <div className="bg-white rounded-2xl p-6 shadow-sm">
+                                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                    <MessageSquare size={20} className="text-purple-600" />
+                                    Message personnalisé
+                                </h2>
+                                <div className="bg-purple-50 border border-purple-100 rounded-lg p-4">
+                                    <p className="text-gray-700 italic">"{order.card_message}"</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Paiement */}
+                        <div className="bg-white rounded-2xl p-6 shadow-sm">
+                            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <CreditCard size={20} className="text-purple-600" />
+                                Paiement
+                            </h2>
+                            <div className="space-y-2 text-sm">
+                                <div className="flex justify-between">
+                                    <span className="text-gray-500">Sous-total</span>
+                                    <span className="font-medium">{(order.total_amount / 100).toFixed(2)}€</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-500">Livraison</span>
+                                    <span className="font-medium">Gratuite</span>
+                                </div>
+                                <div className="pt-2 border-t border-gray-100 flex justify-between">
+                                    <span className="font-semibold text-gray-900">Total</span>
+                                    <span className="font-bold text-lg text-purple-600">
+                                        {(order.total_amount / 100).toFixed(2)}€
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Order Items */}
-                    <div className="p-6 border-b border-gray-50">
-                        <h2 className="font-medium text-gray-900 mb-4">Articles commandés</h2>
+                    {/* Produits */}
+                    <div className="bg-white rounded-2xl p-6 shadow-sm mt-6">
+                        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                            <Package size={20} className="text-purple-600" />
+                            Produits commandés
+                        </h2>
                         <div className="space-y-4">
-                            {items.map((item) => (
-                                <div key={item.id} className="flex items-start gap-4">
-                                    <div className="relative w-16 h-16 bg-gray-100 rounded-lg overflow-hidden shrink-0 border border-gray-200">
-                                        {item.product?.images?.[0] && (
-                                            <Image
-                                                src={item.product.images[0]}
-                                                alt={item.product.name}
-                                                fill
-                                                className="object-cover"
-                                            />
-                                        )}
-                                    </div>
+                            {order.order_items.map((item) => (
+                                <div key={item.id} className="flex items-center gap-4 pb-4 border-b border-gray-100 last:border-0">
+                                    <div className="w-20 h-20 bg-gray-100 rounded-lg flex-shrink-0"></div>
                                     <div className="flex-1">
-                                        <h3 className="font-medium text-gray-900">{item.product?.name || 'Produit inconnu'}</h3>
-                                        <p className="text-xs text-gray-500 uppercase mt-1">Taille: {item.size}</p>
+                                        <h3 className="font-medium text-gray-900">{item.products.name}</h3>
+                                        <p className="text-sm text-gray-500">Quantité : {item.quantity}</p>
                                     </div>
                                     <div className="text-right">
-                                        <div className="font-medium text-gray-900">
-                                            {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(item.price / 100)}
-                                        </div>
-                                        <div className="text-xs text-gray-500">x{item.quantity}</div>
+                                        <p className="font-semibold text-gray-900">
+                                            {(item.price_at_purchase / 100).toFixed(2)}€
+                                        </p>
+                                        <p className="text-xs text-gray-500">
+                                            {((item.price_at_purchase / 100) / item.quantity).toFixed(2)}€ / unité
+                                        </p>
                                     </div>
                                 </div>
                             ))}
                         </div>
-
-                        <div className="mt-6 pt-6 border-t border-gray-50 flex justify-between items-center">
-                            <span className="font-medium text-gray-500">Total</span>
-                            <span className="text-xl font-bold text-gray-900">
-                                {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(order.total_amount / 100)}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Customer Info */}
-                    <div className="p-6 grid md:grid-cols-2 gap-8 bg-gray-50/30">
-                        <div>
-                            <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
-                                <MapPin size={16} className="text-purple-600" />
-                                Adresse de livraison
-                            </h3>
-                            <div className="text-sm text-gray-600 bg-white p-4 rounded-xl border border-gray-100">
-                                <p className="font-medium text-gray-900 mb-1">{order.recipient_name}</p>
-                                <p className="whitespace-pre-line">{order.shipping_address}</p>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
-                                <CreditCard size={16} className="text-purple-600" />
-                                Informations
-                            </h3>
-                            <div className="text-sm text-gray-600 bg-white p-4 rounded-xl border border-gray-100 space-y-2">
-                                <div className="flex justify-between">
-                                    <span>Méthode</span>
-                                    <span className="font-medium">Carte Bancaire</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span>Email confirmation</span>
-                                    <span className="font-medium text-gray-900">{order.customer_email || 'Non renseigné'}</span>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
-            </main>
-        </div>
+            </div>
+        </main>
     )
 }

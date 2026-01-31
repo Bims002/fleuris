@@ -1,13 +1,15 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Star, Truck, ShieldCheck, Heart, Minus, Plus } from 'lucide-react'
+import { Star, Truck, ShieldCheck, Heart, Minus, Plus, Package, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/context/cart-context'
 import { Navbar } from '@/components/navbar'
+import { getStockStatus, checkStockAvailability } from '@/lib/stock-manager'
+import { trackProductView, trackAddToCart } from '@/lib/analytics'
 
 export function ProductDetails({ product }: { product: any }) {
     const router = useRouter()
@@ -16,6 +18,24 @@ export function ProductDetails({ product }: { product: any }) {
     // Selection states
     const [quantity, setQuantity] = useState(1)
     const [selectedSize, setSelectedSize] = useState<'classic' | 'generous' | 'exceptional'>('classic')
+    const [stockError, setStockError] = useState<string | null>(null)
+
+    // Stock status
+    const stockStatus = getStockStatus(
+        product.stock_quantity || 0,
+        product.low_stock_threshold || 5,
+        product.track_stock !== false
+    )
+
+    // Track product view on mount
+    useEffect(() => {
+        trackProductView({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            category: product.category
+        })
+    }, [product])
 
     if (!product) return <div className="min-h-screen pt-32 text-center text-gray-500">Produit introuvable</div>
 
@@ -30,7 +50,36 @@ export function ProductDetails({ product }: { product: any }) {
     const currentPriceDisplay = unitPrice.toFixed(2)
     const totalPriceDisplay = (unitPrice * quantity).toFixed(2)
 
-    const handleAddToCart = () => {
+    const handleAddToCart = async () => {
+        // Vérifier le stock avant d'ajouter au panier
+        if (product.track_stock !== false) {
+            try {
+                const stockCheck = await checkStockAvailability(product.id, quantity)
+                if (!stockCheck.available) {
+                    setStockError(`Stock insuffisant. Seulement ${stockCheck.currentStock} disponible(s).`)
+                    return
+                }
+            } catch (error) {
+                console.error('Erreur vérification stock:', error)
+                setStockError('Erreur lors de la vérification du stock')
+                return
+            }
+        }
+
+        setStockError(null)
+
+        // Track add to cart event
+        trackAddToCart(
+            {
+                id: product.id,
+                name: product.name,
+                price: basePrice,
+                category: product.category
+            },
+            quantity,
+            selectedSize
+        )
+
         addItem({
             product: {
                 ...product,
@@ -95,6 +144,24 @@ export function ProductDetails({ product }: { product: any }) {
                             {product.name}
                         </h1>
 
+                        {/* Stock Badge */}
+                        <div className="mb-4">
+                            {stockStatus.available ? (
+                                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${stockStatus.color === 'green' ? 'bg-green-50 text-green-700' :
+                                    stockStatus.color === 'orange' ? 'bg-orange-50 text-orange-700' :
+                                        'bg-gray-50 text-gray-700'
+                                    }`}>
+                                    <Package size={16} />
+                                    {stockStatus.label}
+                                </div>
+                            ) : (
+                                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium bg-red-50 text-red-700">
+                                    <AlertCircle size={16} />
+                                    {stockStatus.label}
+                                </div>
+                            )}
+                        </div>
+
                         {/* Rating */}
                         <div className="flex items-center gap-2 mb-6">
                             <div className="flex text-yellow-400">
@@ -145,6 +212,14 @@ export function ProductDetails({ product }: { product: any }) {
                             </p>
                         </div>
 
+                        {/* Stock Error */}
+                        {stockError && (
+                            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700 text-sm">
+                                <AlertCircle size={16} />
+                                {stockError}
+                            </div>
+                        )}
+
                         {/* Actions: Quantity & Add to Cart */}
                         <div className="flex gap-4 mb-10 relative z-20">
                             <div className="flex items-center bg-white rounded-full px-4 border-2 border-gray-300 shrink-0 shadow-sm hover:border-purple-500 transition-colors">
@@ -160,11 +235,19 @@ export function ProductDetails({ product }: { product: any }) {
                             <button
                                 type="button"
                                 onClick={handleAddToCart}
-                                className="flex-1 bg-gray-900 text-white rounded-full font-bold text-lg hover:bg-black transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center justify-center gap-3 relative z-30 cursor-pointer"
+                                disabled={!stockStatus.available}
+                                className={`flex-1 rounded-full font-bold text-lg transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center justify-center gap-3 relative z-30 ${stockStatus.available
+                                    ? 'bg-gray-900 text-white hover:bg-black cursor-pointer'
+                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    }`}
                             >
-                                Ajouter au panier
-                                <span className="font-normal text-gray-400">|</span>
-                                {totalPriceDisplay} €
+                                {stockStatus.available ? 'Ajouter au panier' : 'Rupture de stock'}
+                                {stockStatus.available && (
+                                    <>
+                                        <span className="font-normal text-gray-400">|</span>
+                                        {totalPriceDisplay} €
+                                    </>
+                                )}
                             </button>
 
                             <button className="p-4 rounded-full border border-gray-200 text-gray-500 hover:text-red-500 hover:border-red-100 hover:bg-red-50 transition-all">

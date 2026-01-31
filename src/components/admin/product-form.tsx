@@ -1,18 +1,25 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { ArrowLeft, Upload, X, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { productFormSchema } from '@/lib/validations'
+import { FormInput, FormTextarea, FormSelect, FormCheckbox } from '@/components/ui/form-fields'
+import { useState } from 'react'
+import { z } from 'zod'
+
+type ProductFormData = z.infer<typeof productFormSchema>
 
 type ProductData = {
     id?: string
     name: string
     description: string
-    longDescription?: string
-    price: string // Handling as string for input, converting to number for DB
+    long_description?: string
+    price: number
     category: string
     is_available: boolean
     images: string[]
@@ -33,36 +40,55 @@ export function ProductForm({ initialData }: { initialData?: ProductData }) {
     const router = useRouter()
     const supabase = createClient()
     const isEditMode = !!initialData?.id
-
-    const [loading, setLoading] = useState(false)
     const [uploading, setUploading] = useState(false)
-    const [formData, setFormData] = useState<ProductData>({
-        name: '',
-        description: '',
-        longDescription: '',
-        price: '',
-        category: 'anniversaire',
-        is_available: true,
-        images: [],
-        rating: 4.8,
-        reviews: 0,
-        ...initialData
+
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting },
+        watch,
+        setValue,
+    } = useForm<ProductFormData>({
+        resolver: zodResolver(productFormSchema),
+        mode: 'onBlur', // Validation générale au blur
+        defaultValues: {
+            name: initialData?.name || '',
+            description: initialData?.description || '',
+            longDescription: initialData?.long_description || '',
+            price: initialData?.price ? (initialData.price / 100).toString() : '',
+            category: (initialData?.category as any) || 'anniversaire',
+            is_available: initialData?.is_available ?? true,
+            images: initialData?.images || [],
+            rating: initialData?.rating || 4.8,
+            reviews: initialData?.reviews || 0,
+        }
     })
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value } = e.target
-        setFormData(prev => ({ ...prev, [name]: value }))
-    }
-
-    const handleToggle = () => {
-        setFormData(prev => ({ ...prev, is_available: !prev.is_available }))
-    }
+    const images = watch('images')
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return
 
         setUploading(true)
         const file = e.target.files[0]
+
+        // Valider le fichier image
+        const { validateImageFile, validateImageDimensions } = await import('@/lib/image-validation')
+
+        const fileValidation = validateImageFile(file)
+        if (!fileValidation.valid) {
+            alert(fileValidation.error)
+            setUploading(false)
+            return
+        }
+
+        const dimensionsValidation = await validateImageDimensions(file)
+        if (!dimensionsValidation.valid) {
+            alert(dimensionsValidation.error)
+            setUploading(false)
+            return
+        }
+
         const fileExt = file.name.split('.').pop()
         const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
         const filePath = `${fileName}`
@@ -75,66 +101,58 @@ export function ProductForm({ initialData }: { initialData?: ProductData }) {
             console.error(uploadError)
             alert('Erreur upload image')
         } else {
-            // Get Public URL
             const { data } = supabase.storage.from('products').getPublicUrl(filePath)
-
-            setFormData(prev => ({
-                ...prev,
-                images: [...prev.images, data.publicUrl]
-            }))
+            setValue('images', [...images, data.publicUrl])
         }
         setUploading(false)
     }
 
     const removeImage = (indexToRemove: number) => {
-        setFormData(prev => ({
-            ...prev,
-            images: prev.images.filter((_, i) => i !== indexToRemove)
-        }))
+        setValue('images', images.filter((_, i) => i !== indexToRemove))
     }
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setLoading(true)
+    const onSubmit = async (data: ProductFormData) => {
+        try {
+            const payload = {
+                name: data.name,
+                description: data.description,
+                long_description: data.longDescription || data.description,
+                price: Math.round(parseFloat(data.price) * 100), // Convert to cents
+                category: data.category,
+                is_available: data.is_available,
+                images: data.images,
+                rating: data.rating || 4.8,
+                reviews: data.reviews || 0,
+            }
 
-        const payload = {
-            name: formData.name,
-            description: formData.description,
-            long_description: formData.longDescription || formData.description,
-            price: Math.round(parseFloat(formData.price) * 100), // Convert Euros to Cents for DB
-            category: formData.category,
-            is_available: formData.is_available,
-            images: formData.images,
-            rating: formData.rating || 4.8,
-            reviews: formData.reviews || 0,
-        }
+            let error
+            if (isEditMode && initialData?.id) {
+                const { error: updateError } = await supabase
+                    .from('products')
+                    .update(payload)
+                    .eq('id', initialData.id)
+                error = updateError
+            } else {
+                const { error: insertError } = await supabase
+                    .from('products')
+                    .insert([payload])
+                error = insertError
+            }
 
-        let error
-        if (isEditMode && initialData?.id) {
-            const { error: updateError } = await supabase
-                .from('products')
-                .update(payload)
-                .eq('id', initialData.id)
-            error = updateError
-        } else {
-            const { error: insertError } = await supabase
-                .from('products')
-                .insert([payload])
-            error = insertError
+            if (error) {
+                console.error(error)
+                alert('Erreur lors de la sauvegarde : ' + error.message)
+            } else {
+                router.push('/admin/products')
+                router.refresh()
+            }
+        } catch (error: any) {
+            alert('Erreur : ' + error.message)
         }
-
-        if (error) {
-            console.error(error)
-            alert('Erreur lors de la sauvegarde : ' + error.message)
-        } else {
-            router.push('/admin/products')
-            router.refresh()
-        }
-        setLoading(false)
     }
 
     return (
-        <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-8">
+        <form onSubmit={handleSubmit(onSubmit)} className="max-w-4xl mx-auto space-y-8">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <Link href="/admin/products" className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
@@ -144,182 +162,184 @@ export function ProductForm({ initialData }: { initialData?: ProductData }) {
                         {isEditMode ? 'Modifier le Produit' : 'Nouveau Produit'}
                     </h1>
                 </div>
-                <div className="flex items-center gap-3">
-                    <button
-                        type="button"
-                        onClick={() => router.back()}
-                        className="px-4 py-2 text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 font-medium"
-                    >
-                        Annuler
-                    </button>
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-black font-medium flex items-center gap-2 disabled:opacity-50"
-                    >
-                        {loading && <Loader2 className="animate-spin" size={18} />}
-                        Enregistrer
-                    </button>
+            </div>
+
+            {/* Informations de base */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 space-y-6">
+                <h2 className="text-lg font-semibold text-gray-900">Informations de base</h2>
+
+                <FormInput
+                    label="Nom du produit"
+                    type="text"
+                    placeholder="Bouquet de roses rouges"
+                    required
+                    disabled={isSubmitting}
+                    error={errors.name}
+                    {...register('name')}
+                />
+
+                <FormTextarea
+                    label="Description courte"
+                    rows={3}
+                    placeholder="Description affichée dans les listes de produits..."
+                    required
+                    disabled={isSubmitting}
+                    error={errors.description}
+                    {...register('description')}
+                />
+
+                <FormTextarea
+                    label="Description détaillée"
+                    rows={5}
+                    placeholder="Description complète affichée sur la page produit..."
+                    disabled={isSubmitting}
+                    error={errors.longDescription}
+                    {...register('longDescription')}
+                />
+
+                <div className="grid md:grid-cols-2 gap-6">
+                    <FormInput
+                        label="Prix (€)"
+                        type="text"
+                        placeholder="29.99"
+                        required
+                        disabled={isSubmitting}
+                        error={errors.price}
+                        {...register('price', {
+                            onChange: (e) => {
+                                // Validation onChange pour le prix
+                                const value = e.target.value
+                                if (value && !/^\d*\.?\d{0,2}$/.test(value)) {
+                                    e.target.value = value.slice(0, -1)
+                                }
+                            }
+                        })}
+                    />
+
+                    <FormSelect
+                        label="Catégorie"
+                        required
+                        disabled={isSubmitting}
+                        error={errors.category}
+                        options={CATEGORIES}
+                        {...register('category')}
+                    />
+                </div>
+
+                <FormCheckbox
+                    label="Produit disponible"
+                    description="Le produit sera visible et achetable sur le site"
+                    disabled={isSubmitting}
+                    {...register('is_available')}
+                />
+            </div>
+
+            {/* Images */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 space-y-6">
+                <h2 className="text-lg font-semibold text-gray-900">Images du produit</h2>
+
+                {errors.images && (
+                    <p className="text-sm text-red-600 flex items-center gap-1">
+                        <span className="text-red-500">⚠</span>
+                        {errors.images.message}
+                    </p>
+                )}
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {images.map((url, index) => (
+                        <div key={index} className="relative group aspect-square">
+                            <Image
+                                src={url}
+                                alt={`Product ${index + 1}`}
+                                fill
+                                className="object-cover rounded-lg"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => removeImage(index)}
+                                className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+                    ))}
+
+                    {images.length < 5 && (
+                        <label className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-purple-500 hover:bg-purple-50 transition-colors">
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageUpload}
+                                disabled={uploading || isSubmitting}
+                                className="hidden"
+                            />
+                            {uploading ? (
+                                <Loader2 className="animate-spin text-purple-600" size={32} />
+                            ) : (
+                                <>
+                                    <Upload className="text-gray-400 mb-2" size={32} />
+                                    <span className="text-sm text-gray-500">Ajouter</span>
+                                </>
+                            )}
+                        </label>
+                    )}
+                </div>
+                <p className="text-sm text-gray-500">
+                    Maximum 5 images • JPG, PNG ou WebP • Max 5MB • Max 2000x2000px
+                </p>
+            </div>
+
+            {/* Métadonnées */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 space-y-6">
+                <h2 className="text-lg font-semibold text-gray-900">Métadonnées (optionnel)</h2>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                    <FormInput
+                        label="Note moyenne"
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="5"
+                        placeholder="4.8"
+                        disabled={isSubmitting}
+                        error={errors.rating}
+                        {...register('rating', { valueAsNumber: true })}
+                    />
+
+                    <FormInput
+                        label="Nombre d'avis"
+                        type="number"
+                        min="0"
+                        placeholder="0"
+                        disabled={isSubmitting}
+                        error={errors.reviews}
+                        {...register('reviews', { valueAsNumber: true })}
+                    />
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Left Column: Main Info */}
-                <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
-                        <h2 className="font-semibold text-gray-900">Informations Générales</h2>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Nom du produit</label>
-                            <input
-                                name="name"
-                                required
-                                value={formData.name}
-                                onChange={handleChange}
-                                placeholder="Ex: Bouquet Printanier"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Description courte</label>
-                            <textarea
-                                name="description"
-                                rows={3}
-                                value={formData.description}
-                                onChange={handleChange}
-                                placeholder="Description courte affichée dans la liste..."
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Description détaillée</label>
-                            <textarea
-                                name="longDescription"
-                                rows={6}
-                                value={formData.longDescription}
-                                onChange={handleChange}
-                                placeholder="Description complète affichée sur la page produit..."
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
-                        <h2 className="font-semibold text-gray-900">Médias</h2>
-
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                            {formData.images.map((url, idx) => (
-                                <div key={idx} className="relative aspect-square bg-gray-50 rounded-lg overflow-hidden border border-gray-200 group">
-                                    <Image src={url} alt={`Produit ${idx + 1}`} fill className="object-cover" />
-                                    <button
-                                        type="button"
-                                        onClick={() => removeImage(idx)}
-                                        className="absolute top-1 right-1 bg-white/80 p-1 rounded-full text-red-500 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
-                                    >
-                                        <X size={14} />
-                                    </button>
-                                </div>
-                            ))}
-
-                            {/* Upload Button */}
-                            <label className="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-purple-500 hover:bg-purple-50 transition-colors text-gray-400 hover:text-purple-600">
-                                {uploading ? (
-                                    <Loader2 className="animate-spin" size={24} />
-                                ) : (
-                                    <>
-                                        <Upload size={24} />
-                                        <span className="text-xs mt-2 font-medium">Ajouter</span>
-                                    </>
-                                )}
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="hidden"
-                                    onChange={handleImageUpload}
-                                    disabled={uploading}
-                                />
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Right Column: Details & Settings */}
-                <div className="space-y-6">
-                    <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
-                        <h2 className="font-semibold text-gray-900">Détails de Vente</h2>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Prix (€)</label>
-                            <input
-                                name="price"
-                                type="number"
-                                step="0.01"
-                                required
-                                value={formData.price}
-                                onChange={handleChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
-                            <select
-                                name="category"
-                                value={formData.category}
-                                onChange={handleChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
-                            >
-                                {CATEGORIES.map(cat => (
-                                    <option key={cat.value} value={cat.value}>{cat.label}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Note (0-5)</label>
-                                <input
-                                    name="rating"
-                                    type="number"
-                                    step="0.1"
-                                    min="0"
-                                    max="5"
-                                    value={formData.rating}
-                                    onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Nb d'avis</label>
-                                <input
-                                    name="reviews"
-                                    type="number"
-                                    min="0"
-                                    value={formData.reviews}
-                                    onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-4">
-                        <h2 className="font-semibold text-gray-900">Paramètres</h2>
-
-                        <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-gray-700">En vente</span>
-                            <button
-                                type="button"
-                                onClick={handleToggle}
-                                className={`w-11 h-6 flex items-center rounded-full transition-colors ${formData.is_available ? 'bg-green-500' : 'bg-gray-300'}`}
-                            >
-                                <span className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${formData.is_available ? 'translate-x-6' : 'translate-x-1'}`} />
-                            </button>
-                        </div>
-                    </div>
-                </div>
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-4 pb-8">
+                <Link
+                    href="/admin/products"
+                    className="px-6 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                    Annuler
+                </Link>
+                <button
+                    type="submit"
+                    disabled={isSubmitting || uploading}
+                    className="px-6 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                    {isSubmitting ? (
+                        <>
+                            <Loader2 className="animate-spin" size={20} />
+                            Enregistrement...
+                        </>
+                    ) : (
+                        isEditMode ? 'Mettre à jour' : 'Créer le produit'
+                    )}
+                </button>
             </div>
         </form>
     )

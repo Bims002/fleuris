@@ -5,21 +5,23 @@ import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 import { resend } from "@/lib/resend";
 import { OrderConfirmationEmail } from "@/components/emails/order-confirmation";
+import { render } from '@react-email/render';
+import { formatDeliveryDate, formatDeliveryTime } from "@/lib/date-utils";
+import * as React from 'react';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-    apiVersion: '2025-01-27.acacia',
+    apiVersion: '2026-01-28.clover',
     typescript: true,
 });
 
 export async function POST(req: NextRequest) {
     const body = await req.text();
-    const signature = headers().get("Stripe-Signature") as string;
+    const headersList = await headers();
+    const signature = headersList.get("Stripe-Signature") as string;
     let event: Stripe.Event;
 
     try {
         if (!process.env.STRIPE_WEBHOOK_SECRET) {
-            // Fallback for local testing without webhook secret if strict verification isn't possible
-            // But for production safety, we should error or warn.
             console.warn("STRIPE_WEBHOOK_SECRET is missing.");
             throw new Error("Missing STRIPE_WEBHOOK_SECRET");
         }
@@ -36,54 +38,109 @@ export async function POST(req: NextRequest) {
 
     const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL as string,
-        process.env.SUPABASE_SERVICE_ROLE_KEY as string // MUST use Service Role for admin updates bypass RLS
+        process.env.SUPABASE_SERVICE_ROLE_KEY as string
     );
 
     switch (event.type) {
-        case "checkout.session.completed":
-            const session = event.data.object as Stripe.Checkout.Session;
+        case "payment_intent.succeeded":
+            const paymentIntent = event.data.object as Stripe.PaymentIntent;
 
-            // Metadata was set during checkout creation
-            const orderId = session.metadata?.orderId;
+            // Find order by payment intent
+            const { data: orders, error: findError } = await supabase
+                .from("orders")
+                .select(`
+                    *,
+                    order_items (
+                        *,
+                        products (name)
+                    )
+                `)
+                .eq("status", "pending")
+                .limit(1);
 
-            if (orderId) {
-                console.log(`✅ Payment successful for Order ${orderId}`);
+            if (findError || !orders || orders.length === 0) {
+                console.error("Order not found for payment intent");
+                return new NextResponse("Order not found", { status: 404 });
+            }
 
-                const { error } = await supabase
-                    .from("orders")
-                    .update({
-                        status: "paid",
-                        stripe_payment_id: session.payment_intent as string
-                    })
-                    .eq("id", orderId);
+            const order = orders[0];
 
-                if (error) {
-                    console.error(`❌ Error updating order ${orderId}:`, error);
-                    return new NextResponse("Database Error", { status: 500 });
-                }
+            // Update order status
+            const { error: updateError } = await supabase
+                .from("orders")
+                .update({
+                    status: "processing",
+                    stripe_payment_id: paymentIntent.id
+                })
+                .eq("id", order.id);
 
-                // Send Email Notification
-                try {
-                    const customerEmail = session.customer_details?.email;
-                    const customerName = session.customer_details?.name || 'Client';
+            if (updateError) {
+                console.error(`Error updating order ${order.id}:`, updateError);
+                return new NextResponse("Database Error", { status: 500 });
+            }
 
-                    if (customerEmail) {
-                        await resend.emails.send({
-                            from: 'Fleuris <onboarding@resend.dev>', // Default testing domain
-                            to: customerEmail,
-                            subject: 'Confirmation de votre commande Fleuris 🌸',
-                            react: OrderConfirmationEmail({
-                                orderId,
-                                customerName,
-                                totalAmount: session.amount_total || 0
-                            })
-                        });
-                        console.log(`📧 Email sent to ${customerEmail}`);
+            console.log(`✅ Payment successful for Order ${order.id}`);
+
+            // Deduct stock for each order item
+            try {
+                const { deductStock } = await import('@/lib/stock-manager');
+
+                for (const item of order.order_items) {
+                    try {
+                        await deductStock(item.product_id, item.quantity, order.id);
+                        console.log(`📦 Stock deducted for product ${item.product_id}: -${item.quantity}`);
+                    } catch (stockError: any) {
+                        console.error(`❌ Failed to deduct stock for product ${item.product_id}:`, stockError);
+                        // Continue with other items even if one fails
                     }
-                } catch (emailError) {
-                    console.error("❌ Error sending email:", emailError);
-                    // Don't fail the webhook if email fails, just log it
                 }
+            } catch (error) {
+                console.error('❌ Error importing stock manager:', error);
+                // Don't fail the webhook if stock deduction fails
+            }
+
+
+            // Send confirmation email
+            try {
+                const customerEmail = paymentIntent.receipt_email || order.recipient_email;
+
+                if (customerEmail) {
+                    // Utiliser React.createElement au lieu de JSX dans un fichier .ts
+                    const emailElement = React.createElement(OrderConfirmationEmail, {
+                        orderNumber: order.id.slice(0, 8),
+                        customerName: order.recipient_name,
+                        orderDate: new Date(order.created_at).toLocaleDateString('fr-FR', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        }),
+                        deliveryDate: formatDeliveryDate(order.delivery_date),
+                        deliveryTime: formatDeliveryTime(order.delivery_time),
+                        deliveryAddress: order.recipient_address,
+                        cardMessage: order.card_message,
+                        items: order.order_items.map((item: any) => ({
+                            name: item.products.name,
+                            quantity: item.quantity,
+                            price: item.price_at_purchase / 100
+                        })),
+                        totalAmount: order.total_amount / 100
+                    });
+
+                    const emailHtml = await render(emailElement);
+
+                    await resend.emails.send({
+                        from: 'Fleuris <onboarding@resend.dev>',
+                        to: customerEmail,
+                        subject: `Confirmation de votre commande #${order.id.slice(0, 8)} 🌸`,
+                        html: emailHtml
+                    });
+
+                    console.log(`📧 Confirmation email sent to ${customerEmail}`);
+                }
+            } catch (emailError) {
+                console.error("❌ Error sending email:", emailError);
+                // Don't fail the webhook if email fails
             }
             break;
 

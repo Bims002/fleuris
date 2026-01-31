@@ -3,6 +3,8 @@ import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/context/cart-context";
 import { Footer } from "@/components/footer";
+import { GoogleAnalytics } from '@next/third-parties/google';
+import { CookieConsentBanner } from '@/components/cookie-consent';
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -54,6 +56,14 @@ export default function RootLayout({
           {children}
           <Footer />
         </CartProvider>
+
+        {/* Google Analytics 4 */}
+        {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+        )}
+
+        {/* Cookie Consent Banner */}
+        <CookieConsentBanner />
       </body>
     </html>
   );

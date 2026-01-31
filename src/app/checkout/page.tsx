@@ -6,17 +6,25 @@ import { Elements } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
 import { useEffect, useState } from 'react'
 import { CheckoutForm } from '@/components/checkout-form'
+import { trackBeginCheckout } from '@/lib/analytics'
 
 // Make sure to call loadStripe outside of a component’s render to avoid
 // recreating the Stripe object on every render.
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 export default function CheckoutPage() {
-    const { totalValues } = useCart()
+    const { totalValues, items } = useCart()
     const [clientSecret, setClientSecret] = useState<string>('')
 
     const shippingCost = 0
     const totalAmount = totalValues.price + shippingCost
+
+    // Track begin checkout
+    useEffect(() => {
+        if (items.length > 0) {
+            trackBeginCheckout(items, totalValues.price)
+        }
+    }, [])
 
     useEffect(() => {
         if (totalValues.price > 0) {
@@ -29,7 +37,7 @@ export default function CheckoutPage() {
                 .then((res) => res.json())
                 .then((data) => setClientSecret(data.clientSecret));
         }
-    }, [totalValues.price, totalAmount]);
+    }, [totalAmount, totalValues.price]);
 
     const appearance = {
         theme: 'stripe' as const,
