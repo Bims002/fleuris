@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Product } from '@/types/product'
+import { useState } from 'react'
 import Image from 'next/image'
 import { ShoppingBag } from 'lucide-react'
 import Link from 'next/link'
@@ -14,11 +15,13 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, index }: ProductCardProps) {
+    const [imageError, setImageError] = useState(false)
     const { addItem } = useCart()
     const router = useRouter()
 
     const handleAddToCart = (e: React.MouseEvent) => {
-        e.preventDefault() // Empêcher la navigation si on clique sur le bouton
+        // ... existing handleAddToCart logic ...
+        e.preventDefault()
         e.stopPropagation()
 
         addItem({
@@ -30,9 +33,6 @@ export function ProductCard({ product, index }: ProductCardProps) {
             selectedSize: 'classic',
             price: product.price
         })
-
-        // Optionnel : Feedback visuel ou redirection immédiate
-        // router.push('/cart') 
     }
 
     return (
@@ -44,13 +44,20 @@ export function ProductCard({ product, index }: ProductCardProps) {
         >
             <Link href={`/products/${product.id}`} className="block h-full">
                 <div className="relative aspect-square overflow-hidden bg-gray-100">
-                    {/* Placeholder image logic if no real image */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400">
-                        {/* Simple visual placeholder */}
-                        <span className="sr-only">{product.name}</span>
-                    </div>
-                    {/* Real image would go here */}
-                    {/* <Image src={product.imageUrl} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" /> */}
+                    {(!imageError && (product.imageUrl || product.images?.[0])) ? (
+                        <Image
+                            src={product.imageUrl || product.images?.[0] || '/placeholder-1.jpg'}
+                            alt={product.name}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-500"
+                            onError={() => setImageError(true)}
+                        />
+                    ) : (
+                        <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400">
+                            <span className="sr-only">{product.name}</span>
+                            <span className="text-2xl font-serif opacity-20">Fleuris</span>
+                        </div>
+                    )}
 
                     <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold text-gray-900 shadow-sm">
                         {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(product.price)}

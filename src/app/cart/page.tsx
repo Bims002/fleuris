@@ -9,7 +9,7 @@ import { motion } from 'framer-motion'
 export default function CartPage() {
     const { items, removeItem, updateQuantity, totalValues } = useCart()
 
-    const shippingCost = 9.90 // Frais de livraison fixe pour le MVP
+    const shippingCost = 0 // Livraison gratuite
     const totalWithShipping = (totalValues.price + shippingCost).toFixed(2)
 
     return (
@@ -60,19 +60,19 @@ export default function CartPage() {
 
                                             <div className="flex justify-between items-end mt-4">
                                                 {/* Quantity Controls */}
-                                                <div className="flex items-center bg-gray-50 rounded-lg border border-gray-100">
+                                                <div className="flex items-center bg-white rounded-lg border-2 border-gray-200 hover:border-purple-400 transition-colors">
                                                     <button
                                                         onClick={() => updateQuantity(item.product.id, item.selectedSize, item.quantity - 1)}
-                                                        className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                                                        className="p-2 text-gray-600 hover:text-purple-600 transition-colors"
                                                     >
-                                                        <Minus size={14} />
+                                                        <Minus size={16} strokeWidth={2.5} />
                                                     </button>
-                                                    <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
+                                                    <span className="w-8 text-center text-sm font-bold text-gray-900">{item.quantity}</span>
                                                     <button
                                                         onClick={() => updateQuantity(item.product.id, item.selectedSize, item.quantity + 1)}
-                                                        className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                                                        className="p-2 text-gray-600 hover:text-purple-600 transition-colors"
                                                     >
-                                                        <Plus size={14} />
+                                                        <Plus size={16} strokeWidth={2.5} />
                                                     </button>
                                                 </div>
 

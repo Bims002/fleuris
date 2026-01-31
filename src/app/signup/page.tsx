@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 
-export default function LoginPage() {
+export default function SignUpPage() {
+    const [fullName, setFullName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
@@ -14,28 +15,38 @@ export default function LoginPage() {
     const router = useRouter()
     const supabase = createClient()
 
-    const handleLogin = async (e: React.FormEvent) => {
+    const handleSignUp = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
         setMessage(null)
 
-        const { error } = await supabase.auth.signInWithPassword({
+        // URL de redirection après confirmation email (si activé)
+        let redirectTo = undefined;
+        if (typeof window !== 'undefined') {
+            redirectTo = window.location.origin + '/auth/callback';
+        }
+
+        const { error } = await supabase.auth.signUp({
             email,
             password,
+            options: {
+                emailRedirectTo: redirectTo,
+                // On passe le nom complet dans les métadonnées pour le trigger SQL
+                data: {
+                    full_name: fullName,
+                }
+            },
         })
 
         if (error) {
             setMessage({ text: error.message, type: 'error' })
-            setLoading(false)
         } else {
-            router.push('/')
-            router.refresh()
+            setMessage({ text: "Compte créé ! Vérifiez vos emails pour confirmer.", type: 'success' })
+            // Optionnel : Rediriger après quelques secondes ou laisser l'utilisateur lire le message
         }
+        setLoading(false)
     }
 
-
-
-    // Classes conditionnelles simplifiées pour éviter les erreurs de template string complexes
     const messageClass = message?.type === 'error'
         ? 'bg-red-50 text-red-700'
         : 'bg-green-50 text-green-700';
@@ -47,9 +58,9 @@ export default function LoginPage() {
                     <Link href="/" className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
                         Fleuris
                     </Link>
-                    <h2 className="mt-6 text-2xl font-bold text-gray-900">Bienvenue</h2>
+                    <h2 className="mt-6 text-2xl font-bold text-gray-900">Créer un compte</h2>
                     <p className="mt-2 text-sm text-gray-600">
-                        Connectez-vous pour accéder à votre espace
+                        Rejoignez-nous pour commander plus simplement
                     </p>
                 </div>
 
@@ -58,7 +69,28 @@ export default function LoginPage() {
                     animate={{ opacity: 1, y: 0 }}
                     className="bg-white py-8 px-6 shadow-xl rounded-2xl sm:px-10 border border-gray-100"
                 >
-                    <form className="space-y-6" onSubmit={handleLogin}>
+                    <form className="space-y-6" onSubmit={handleSignUp}>
+                        {/* Full Name */}
+                        <div>
+                            <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
+                                Nom complet
+                            </label>
+                            <div className="mt-1">
+                                <input
+                                    id="fullName"
+                                    name="fullName"
+                                    type="text"
+                                    autoComplete="name"
+                                    required
+                                    value={fullName}
+                                    onChange={(e) => setFullName(e.target.value)}
+                                    className="appearance-none block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+                                    placeholder="Jean Dupont"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Email */}
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                                 Email
@@ -77,6 +109,7 @@ export default function LoginPage() {
                             </div>
                         </div>
 
+                        {/* Password */}
                         <div>
                             <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                                 Mot de passe
@@ -86,7 +119,7 @@ export default function LoginPage() {
                                     id="password"
                                     name="password"
                                     type="password"
-                                    autoComplete="current-password"
+                                    autoComplete="new-password"
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
@@ -104,22 +137,22 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-gray-900 hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 disabled:opacity-50 transition-colors"
+                            className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-gray-900 hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 transition-colors"
                         >
-                            {loading ? 'Chargement...' : 'Se connecter'}
+                            {loading ? 'Création en cours...' : 'S\'inscrire'}
                         </button>
                     </form>
 
                     <div className="mt-6 text-center">
                         <p className="text-sm text-gray-600">
-                            Pas encore de compte ?{' '}
-                            <Link href="/signup" className="font-medium text-purple-600 hover:text-purple-500">
-                                S'inscrire
+                            Déjà un compte ?{' '}
+                            <Link href="/login" className="font-medium text-purple-600 hover:text-purple-500">
+                                Se connecter
                             </Link>
                         </p>
                     </div>
                 </motion.div>
             </div>
-        </div >
+        </div>
     )
 }

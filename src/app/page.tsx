@@ -1,6 +1,12 @@
 import { Navbar } from '@/components/navbar'
 import { OccasionCard } from '@/components/occasion-card'
 import Link from 'next/link'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Livraison de Fleurs Originales & Artisanales',
+  description: 'Commandez des bouquets uniques pour toutes les occasions. Livraison express en 24h par des artisans fleuristes passionnés.',
+}
 
 export default function Home() {
   const occasions = [
@@ -28,7 +34,7 @@ export default function Home() {
               </span>
             </h1>
             <p className="text-lg md:text-xl text-gray-500 max-w-lg mb-10 leading-relaxed font-light">
-              Des bouquets uniques conçus par nos artisans fleuristes partenaires.
+              Des bouquets uniques conçus avec passion.
               Livrés en main propre, sans carton, juste de l'émotion.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
@@ -61,7 +67,7 @@ export default function Home() {
       <div className="w-full bg-gray-900 text-white py-4 overflow-hidden">
         <div className="flex justify-around text-center text-xs md:text-sm font-medium tracking-widest uppercase opacity-80">
           <span>Livraison 24h</span>
-          <span>Fleuristes Locaux</span>
+          <span>Savoir-faire Artisanal</span>
           <span>Fraîcheur Garantie</span>
           <span>Paiement Sécurisé</span>
         </div>

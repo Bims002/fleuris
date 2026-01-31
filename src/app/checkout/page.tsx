@@ -15,7 +15,7 @@ export default function CheckoutPage() {
     const { totalValues } = useCart()
     const [clientSecret, setClientSecret] = useState<string>('')
 
-    const shippingCost = 9.90
+    const shippingCost = 0
     const totalAmount = totalValues.price + shippingCost
 
     useEffect(() => {

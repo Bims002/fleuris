@@ -84,6 +84,27 @@ create policy "Users can update own profile"
   on profiles for update
   using ( auth.uid() = id );
 
--- Admins (Need a way to bootstrap first admin, usually manually in Supabase dashboard)
--- Simple policy: if you have role 'admin' in profiles, you can do anything.
--- Note: Recursive policies can be dangerous, careful with implementation.
+-- AUTOMATIC PROFILE CREATION TRIGGER
+-- This ensures that when a user signs up via Auth, a public profile is created
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, full_name, role)
+  values (new.id, new.raw_user_meta_data->>'full_name', 'customer');
+  return new;
+end;
+$$ language plpgsql security definer;
+
+-- Trigger execution
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
+
+-- STORAGE BUCKETS (Optional, recommended for images)
+insert into storage.buckets (id, name, public) 
+values ('products', 'products', true)
+on conflict (id) do nothing;
+
+create policy "Product images are publicly accessible."
+  on storage.objects for select
+  using ( bucket_id = 'products' );

@@ -1,16 +1,43 @@
 import type { Metadata } from "next";
-import { Outfit } from "next/font/google";
+import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/context/cart-context";
+import { Footer } from "@/components/footer";
 
-const outfit = Outfit({
+const playfair = Playfair_Display({
   subsets: ["latin"],
-  variable: "--font-outfit",
+  variable: "--font-serif",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
 });
 
 export const metadata: Metadata = {
-  title: "Fleuris | L'élégance florale",
-  description: "Fleuriste en ligne. Bouquets, plantes et cadeaux.",
+  title: {
+    template: '%s | Fleuris',
+    default: 'Fleuris - Bouquets & Compositions Florales Uniques',
+  },
+  description: "Découvrez Fleuris, votre artisan fleuriste en ligne. Bouquets poétiques, fleurs fraîches et livraison soignée pour toutes les occasions (Mariage, Deuil, Amour).",
+  keywords: ["fleuriste", "bouquet", "fleurs", "livraison fleurs", "mariage", "deuil", "artisan fleuriste"],
+  authors: [{ name: "Fleuris" }],
+  openGraph: {
+    type: 'website',
+    locale: 'fr_FR',
+    url: 'https://fleuris.com',
+    siteName: 'Fleuris',
+    title: 'Fleuris - Bouquets & Compositions Florales',
+    description: 'L’émotion des fleurs, la simplicité du service.',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Fleuris',
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -21,10 +48,11 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body
-        className={`${outfit.variable} font-sans antialiased`}
+        className={`${playfair.variable} ${inter.variable} font-sans antialiased`}
       >
         <CartProvider>
           {children}
+          <Footer />
         </CartProvider>
       </body>
     </html>
