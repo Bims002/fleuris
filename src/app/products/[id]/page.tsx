@@ -56,5 +56,36 @@ export default async function ProductPage({ params }: Props) {
         notFound()
     }
 
-    return <ProductDetails product={product} />
+    const productSchema = {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": product.name,
+        "image": product.images || [product.imageUrl],
+        "description": product.description,
+        "sku": product.id,
+        "brand": {
+            "@type": "Brand",
+            "name": "Fleuris"
+        },
+        "offers": {
+            "@type": "Offer",
+            "url": `https://fleuris.store/products/${product.id}`,
+            "priceCurrency": "EUR",
+            "price": product.price,
+            "availability": product.track_stock && product.stock_quantity === 0
+                ? "https://schema.org/OutOfStock"
+                : "https://schema.org/InStock",
+            "itemCondition": "https://schema.org/NewCondition"
+        }
+    }
+
+    return (
+        <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+            />
+            <ProductDetails product={product} />
+        </>
+    )
 }

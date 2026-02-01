@@ -18,6 +18,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://fleuris.store'),
   title: {
     template: '%s | Fleuris',
     default: 'Fleuris - Bouquets & Compositions Florales Uniques',
@@ -59,6 +60,42 @@ export default function RootLayout({
             <Footer />
           </WishlistProvider>
         </CartProvider>
+
+        {/* Structured Data for AI & Search Engines */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify([
+              {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "@id": "https://fleuris.store/#organization",
+                "name": "Fleuris",
+                "url": "https://fleuris.store",
+                "logo": {
+                  "@type": "ImageObject",
+                  "url": "https://fleuris.store/icon.png",
+                  "width": "512",
+                  "height": "512"
+                },
+                "description": "Artisan fleuriste en ligne spécialisé dans les bouquets uniques et la livraison soignée en 24h.",
+                "sameAs": [
+                  "https://www.instagram.com/fleuris"
+                ]
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                "@id": "https://fleuris.store/#website",
+                "name": "Fleuris",
+                "url": "https://fleuris.store",
+                "publisher": {
+                  "@id": "https://fleuris.store/#organization"
+                }
+              }
+            ])
+          }}
+        />
 
         {/* Google Analytics 4 */}
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
