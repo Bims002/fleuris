@@ -118,6 +118,7 @@ export async function POST(req: NextRequest) {
                         deliveryDate: formatDeliveryDate(order.delivery_date),
                         deliveryTime: formatDeliveryTime(order.delivery_time),
                         deliveryAddress: order.recipient_address,
+                        trackingToken: order.tracking_token,
                         cardMessage: order.card_message,
                         items: order.order_items.map((item: any) => ({
                             name: item.products.name,
@@ -130,7 +131,7 @@ export async function POST(req: NextRequest) {
                     const emailHtml = await render(emailElement);
 
                     await resend.emails.send({
-                        from: 'Fleuris <onboarding@resend.dev>',
+                        from: 'Fleuris <commandes@fleuris.store>',
                         to: customerEmail,
                         subject: `Confirmation de votre commande #${order.id.slice(0, 8)} 🌸`,
                         html: emailHtml

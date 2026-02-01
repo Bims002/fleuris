@@ -24,10 +24,14 @@ export const metadata: Metadata = {
   description: "Découvrez Fleuris, votre artisan fleuriste en ligne. Bouquets poétiques, fleurs fraîches et livraison soignée pour toutes les occasions (Mariage, Deuil, Amour).",
   keywords: ["fleuriste", "bouquet", "fleurs", "livraison fleurs", "mariage", "deuil", "artisan fleuriste"],
   authors: [{ name: "Fleuris" }],
+  icons: {
+    icon: '/icon.png',
+    apple: '/apple-icon.png',
+  },
   openGraph: {
     type: 'website',
     locale: 'fr_FR',
-    url: 'https://fleuris.com',
+    url: 'https://fleuris.store',
     siteName: 'Fleuris',
     title: 'Fleuris - Bouquets & Compositions Florales',
     description: 'L’émotion des fleurs, la simplicité du service.',

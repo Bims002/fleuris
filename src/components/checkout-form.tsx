@@ -90,13 +90,8 @@ export function CheckoutForm({ totalAmount }: { totalAmount: number }) {
         try {
             const supabase = createClient()
 
-            // Get current user
+            // Get current user (optional - guest checkout allowed)
             const { data: { user } } = await supabase.auth.getUser()
-
-            if (!user) {
-                setMessage("Vous devez être connecté pour commander.")
-                return
-            }
 
             const recipientName = `${data.firstName} ${data.lastName}`
             const address = `${data.address}, ${data.zipCode} ${data.city}`
@@ -105,7 +100,8 @@ export function CheckoutForm({ totalAmount }: { totalAmount: number }) {
             const { data: order, error: orderError } = await supabase
                 .from('orders')
                 .insert({
-                    user_id: user.id,
+                    user_id: user?.id || null, // Allow null for guest checkout
+                    // recipient_email: data.email, // TODO: Add after running migration
                     status: 'pending',
                     total_amount: Math.round(totalAmount * 100), // cents
                     recipient_name: recipientName,

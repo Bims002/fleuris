@@ -14,6 +14,7 @@ import { trackPurchase } from '@/lib/analytics'
 
 interface OrderDetails {
     id: string
+    tracking_token: string
     total_amount: number
     delivery_date: string
     delivery_time: string
@@ -41,57 +42,67 @@ function ConfirmationContent() {
 
     useEffect(() => {
         async function loadOrderDetails() {
-            if (redirectStatus === 'succeeded' && sessionId) {
+            if (redirectStatus === 'succeeded') {
                 setStatus('success')
                 clearCart()
 
-                // Récupérer les détails de la commande
-                try {
-                    const supabase = createClient()
-                    const { data: orders } = await supabase
-                        .from('orders')
-                        .select(`
-                            id,
-                            total_amount,
-                            delivery_date,
-                            delivery_time,
-                            recipient_name,
-                            recipient_address,
-                            card_message,
-                            order_items (
-                                quantity,
-                                price_at_purchase,
-                                products (
-                                    name,
-                                    images
+                // Essayer de récupérer les détails de la commande (optionnel)
+                if (sessionId) {
+                    try {
+                        const supabase = createClient()
+                        const { data: orders, error } = await supabase
+                            .from('orders')
+                            .select(`
+                                id,
+                                tracking_token,
+                                total_amount,
+                                delivery_date,
+                                delivery_time,
+                                recipient_name,
+                                recipient_address,
+                                card_message,
+                                order_items (
+                                    quantity,
+                                    price_at_purchase,
+                                    products (
+                                        name,
+                                        images
+                                    )
                                 )
+                            `)
+                            .eq('stripe_payment_id', sessionId)
+                            .order('created_at', { ascending: false })
+                            .limit(1)
+
+                        if (error) {
+                            console.error('Erreur RLS ou requête:', error)
+                            // Continuer quand même, la commande est validée
+                        } else if (orders && orders.length > 0) {
+                            const orderData = orders[0] as any
+                            setOrderDetails(orderData)
+
+                            // Track purchase event
+                            trackPurchase(
+                                orderData.id,
+                                orderData.total_amount / 100,
+                                orderData.order_items.map((item: any) => ({
+                                    id: item.products.id,
+                                    name: item.products.name,
+                                    price: item.price_at_purchase / 100,
+                                    quantity: item.quantity
+                                }))
                             )
-                        `)
-                        .eq('stripe_payment_id', sessionId)
-                        .order('created_at', { ascending: false })
-                        .limit(1)
-
-                    if (orders && orders.length > 0) {
-                        const orderData = orders[0] as any
-                        setOrderDetails(orderData)
-
-                        // Track purchase event
-                        trackPurchase(
-                            orderData.id,
-                            orderData.total_amount / 100,
-                            orderData.order_items.map((item: any) => ({
-                                id: item.products.id,
-                                name: item.products.name,
-                                price: item.price_at_purchase / 100,
-                                quantity: item.quantity
-                            }))
-                        )
+                        }
+                    } catch (error) {
+                        console.error('Erreur chargement commande:', error)
+                        // Continuer quand même, la commande est validée
                     }
-                } catch (error) {
-                    console.error('Erreur chargement commande:', error)
                 }
             } else if (redirectStatus === 'failed') {
                 setStatus('error')
+            } else {
+                // Pas de redirect_status, rester en loading
+                setStatus('loading')
             }
         }
 
@@ -151,6 +162,51 @@ function ConfirmationContent() {
                     </p>
                 )}
             </motion.div>
+
+            {/* Tracking Link */}
+            {orderDetails && orderDetails.tracking_token && (
+                <motion.div
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.05 }}
+                    className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-3xl p-6 shadow-lg border-2 border-purple-200"
+                >
+                    <div className="flex items-start gap-4">
+                        <div className="p-3 bg-purple-100 rounded-full">
+                            <Package className="w-6 h-6 text-purple-600" />
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="text-lg font-bold text-gray-900 mb-2">
+                                🔗 Suivez votre commande
+                            </h3>
+                            <p className="text-sm text-gray-600 mb-3">
+                                Conservez ce lien pour suivre l'état de votre commande à tout moment :
+                            </p>
+                            <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-purple-200">
+                                <input
+                                    type="text"
+                                    readOnly
+                                    value={`${window.location.origin}/track-order/${orderDetails.tracking_token}`}
+                                    className="flex-1 text-sm text-gray-700 bg-transparent outline-none"
+                                    onClick={(e) => e.currentTarget.select()}
+                                />
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(`${window.location.origin}/track-order/${orderDetails.tracking_token}`)
+                                        alert('Lien copié !')
+                                    }}
+                                    className="px-4 py-2 text-sm font-semibold text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors"
+                                >
+                                    Copier
+                                </button>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-2">
+                                📧 Ce lien vous a également été envoyé par email
+                            </p>
+                        </div>
+                    </div>
+                </motion.div>
+            )}
 
             {orderDetails && (
                 <>

@@ -48,7 +48,7 @@ export default function TermsPage() {
 
             <h3>8. Service Client</h3>
             <p>
-                Pour toute question ou réclamation, notre service client est joignable via le formulaire de contact du site ou par email à support@fleuris.com.
+                Pour toute question ou réclamation, notre service client est joignable via le formulaire de contact du site ou par email à support@fleuris.store.
             </p>
         </>
     )

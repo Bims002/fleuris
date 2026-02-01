@@ -1,6 +1,6 @@
 // Liste des emails autorisés à accéder à l'admin
 const ADMIN_EMAILS = [
-    'admin@fleuris.com',
+    'admin@fleuris.store',
     // Ajoutez d'autres emails admin ici si nécessaire
 ]
 

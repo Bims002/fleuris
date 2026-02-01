@@ -45,7 +45,7 @@ export default function PrivacyPage() {
 
             <h3>4. Vos droits</h3>
             <p>
-                Conformément au RGPD, vous disposez d'un droit d'accès, de rectification et de suppression de vos données personnelles. Vous pouvez exercer ce droit en nous contactant à privacy@fleuris.com ou depuis votre espace client.
+                Conformément au RGPD, vous disposez d'un droit d'accès, de rectification et de suppression de vos données personnelles. Vous pouvez exercer ce droit en nous contactant à privacy@fleuris.store ou depuis votre espace client.
             </p>
         </>
     )

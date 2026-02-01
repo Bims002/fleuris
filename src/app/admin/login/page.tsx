@@ -32,7 +32,7 @@ export default function AdminLoginPage() {
             }
 
             // Vérifier si l'email est admin
-            if (data.user && data.user.email !== 'admin@fleuris.com') {
+            if (data.user && data.user.email !== 'admin@fleuris.store') {
                 await supabase.auth.signOut()
                 setError('Accès non autorisé')
                 setLoading(false)
@@ -85,7 +85,7 @@ export default function AdminLoginPage() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
                                     className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                                    placeholder="admin@fleuris.com"
+                                    placeholder="admin@fleuris.store"
                                     disabled={loading}
                                 />
                             </div>

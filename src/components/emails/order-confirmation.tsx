@@ -7,6 +7,7 @@ interface OrderConfirmationEmailProps {
   deliveryDate: string;
   deliveryTime: string;
   deliveryAddress: string;
+  trackingToken: string;
   cardMessage?: string;
   items: Array<{
     name: string;
@@ -23,6 +24,7 @@ export const OrderConfirmationEmail: React.FC<OrderConfirmationEmailProps> = ({
   deliveryDate,
   deliveryTime,
   deliveryAddress,
+  trackingToken,
   cardMessage,
   items,
   totalAmount,
@@ -124,19 +126,29 @@ export const OrderConfirmationEmail: React.FC<OrderConfirmationEmailProps> = ({
         </table>
       </div>
 
-      {/* CTA */}
-      <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-        <a href={`${process.env.NEXT_PUBLIC_SITE_URL}/account/orders`} style={{
-          display: 'inline-block',
-          backgroundColor: '#9333ea',
-          color: 'white',
-          padding: '12px 30px',
-          textDecoration: 'none',
-          borderRadius: '8px',
-          fontWeight: 'bold'
-        }}>
-          Suivre ma commande
-        </a>
+      {/* Tracking Link */}
+      <div style={{ backgroundColor: '#f3e8ff', padding: '20px', borderRadius: '8px', marginBottom: '20px', border: '2px solid #9333ea' }}>
+        <h3 style={{ color: '#9333ea', margin: '0 0 10px 0', fontSize: '18px' }}>🔗 Suivez votre commande</h3>
+        <p style={{ margin: '0 0 15px 0', fontSize: '14px', color: '#666' }}>
+          Cliquez sur le bouton ci-dessous pour suivre l'état de votre commande en temps réel :
+        </p>
+        <div style={{ textAlign: 'center' }}>
+          <a href={`${process.env.NEXT_PUBLIC_SITE_URL}/track-order/${trackingToken}`} style={{
+            display: 'inline-block',
+            backgroundColor: '#9333ea',
+            color: 'white',
+            padding: '14px 32px',
+            textDecoration: 'none',
+            borderRadius: '8px',
+            fontWeight: 'bold',
+            fontSize: '16px'
+          }}>
+            📦 Suivre ma commande
+          </a>
+        </div>
+        <p style={{ margin: '15px 0 0 0', fontSize: '12px', color: '#666', textAlign: 'center' }}>
+          💡 Conservez ce lien pour accéder à tout moment au suivi de votre commande
+        </p>
       </div>
 
       {/* Footer */}
@@ -144,7 +156,7 @@ export const OrderConfirmationEmail: React.FC<OrderConfirmationEmailProps> = ({
         <p style={{ margin: '5px 0' }}>Merci de votre confiance !</p>
         <p style={{ margin: '5px 0' }}>L'équipe Fleuris</p>
         <p style={{ margin: '15px 0 5px 0', fontSize: '12px' }}>
-          Des questions ? Contactez-nous à <a href="mailto:contact@fleuris.fr" style={{ color: '#9333ea' }}>contact@fleuris.fr</a>
+          Des questions ? Contactez-nous à <a href="mailto:support@fleuris.store" style={{ color: '#9333ea' }}>support@fleuris.store</a>
         </p>
       </div>
     </body>
