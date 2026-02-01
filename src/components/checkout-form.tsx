@@ -40,16 +40,23 @@ const checkoutFormSchema = z.object({
     // Nouveaux champs de livraison
     deliveryDate: z.string()
         .min(1, 'La date de livraison est requise')
-        .refine((date) => {
-            const selected = new Date(date)
+        .regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Format requis : JJ/MM/AAAA')
+        .refine((value) => {
+            const [day, month, year] = value.split('/').map(Number)
+            const selected = new Date(year, month - 1, day)
+            // Vérifier validité réelle de la date (ex: pas 31/02)
+            if (selected.getDate() !== day || selected.getMonth() !== month - 1 || selected.getFullYear() !== year) {
+                return false
+            }
             const tomorrow = new Date()
             tomorrow.setDate(tomorrow.getDate() + 1)
             tomorrow.setHours(0, 0, 0, 0)
             selected.setHours(0, 0, 0, 0)
             return selected >= tomorrow
         }, { message: 'La livraison doit être prévue au moins 24h à l\'avance' })
-        .refine((date) => {
-            const selected = new Date(date)
+        .refine((value) => {
+            const [day, month, year] = value.split('/').map(Number)
+            const selected = new Date(year, month - 1, day)
             return selected.getDay() !== 0 // 0 = dimanche
         }, { message: 'Pas de livraison le dimanche' }),
     deliveryTime: z.enum(['morning', 'afternoon'] as const),
@@ -114,7 +121,7 @@ export function CheckoutForm({ totalAmount, clientSecret }: { totalAmount: numbe
                     total_amount: Math.round(totalAmount * 100), // cents
                     recipient_name: recipientName,
                     recipient_address: address,
-                    delivery_date: data.deliveryDate,
+                    delivery_date: data.deliveryDate.split('/').reverse().join('-'), // Convert JJ/MM/AAAA to YYYY-MM-DD
                     delivery_time: data.deliveryTime,
                     card_message: data.cardMessage || null,
                 })
@@ -263,12 +270,26 @@ export function CheckoutForm({ totalAmount, clientSecret }: { totalAmount: numbe
                 <div className="grid md:grid-cols-2 gap-4">
                     <FormInput
                         label="Date souhaitée"
-                        type="date"
-                        min={getMinDeliveryDate()}
+                        type="text"
+                        placeholder="JJ/MM/AAAA"
                         required
                         disabled={isSubmitting}
                         error={errors.deliveryDate}
-                        {...register('deliveryDate')}
+                        {...register('deliveryDate', {
+                            onChange: (e) => {
+                                let value = e.target.value.replace(/\D/g, '')
+                                if (value.length > 8) value = value.slice(0, 8)
+
+                                let formatted = value
+                                if (value.length > 2) {
+                                    formatted = value.slice(0, 2) + '/' + value.slice(2)
+                                }
+                                if (value.length > 4) {
+                                    formatted = formatted.slice(0, 5) + '/' + formatted.slice(5)
+                                }
+                                e.target.value = formatted
+                            }
+                        })}
                     />
 
                     <FormSelect
