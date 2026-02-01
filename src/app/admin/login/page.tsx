@@ -9,6 +9,7 @@ import Link from 'next/link'
 export default function AdminLoginPage() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [honey, setHoney] = useState('')
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
     const router = useRouter()
@@ -17,6 +18,14 @@ export default function AdminLoginPage() {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
         setError('')
+
+        // Honeypot check
+        if (honey) {
+            console.warn('Bot detected via honeypot');
+            setError('Une erreur inattendue est survenue');
+            return;
+        }
+
         setLoading(true)
 
         try {
@@ -71,6 +80,16 @@ export default function AdminLoginPage() {
                     )}
 
                     <form onSubmit={handleLogin} className="space-y-5">
+                        <div style={{ display: 'none' }} aria-hidden="true">
+                            <input
+                                type="text"
+                                name="website_url"
+                                value={honey}
+                                onChange={(e) => setHoney(e.target.value)}
+                                tabIndex={-1}
+                                autoComplete="off"
+                            />
+                        </div>
                         {/* Email */}
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">

@@ -14,6 +14,7 @@ import { z } from 'zod';
 import { FormInput, FormTextarea, FormSelect } from '@/components/ui/form-fields';
 import { Loader2 } from 'lucide-react';
 import { getMinDeliveryDate } from '@/lib/date-utils';
+import { Honeypot } from '@/components/ui/honeypot';
 
 // Schéma de validation pour le checkout
 const checkoutFormSchema = z.object({
@@ -64,6 +65,7 @@ const checkoutFormSchema = z.object({
         .max(200, 'Le message ne peut pas dépasser 200 caractères')
         .optional()
         .or(z.literal('')),
+    website_url: z.string().optional(),
 })
 
 type CheckoutFormData = z.infer<typeof checkoutFormSchema>
@@ -88,9 +90,17 @@ export function CheckoutForm({ totalAmount, clientSecret }: { totalAmount: numbe
 
     const [message, setMessage] = React.useState<string | null>(null);
     const cardMessage = watch('cardMessage')
+    const honey = watch('website_url')
 
     const onSubmit = async (data: CheckoutFormData) => {
         if (!stripe || !elements) {
+            return;
+        }
+
+        // Honeypot check
+        if (honey) {
+            console.warn('Bot detected via honeypot');
+            setMessage("Une activité inhabituelle a été détectée. Veuillez rafraîchir la page.");
             return;
         }
 
@@ -170,6 +180,7 @@ export function CheckoutForm({ totalAmount, clientSecret }: { totalAmount: numbe
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+            <Honeypot {...register('website_url')} />
             {/* Message d'erreur global */}
             {message && (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-lg">

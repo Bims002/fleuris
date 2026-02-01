@@ -41,6 +41,7 @@ export const checkoutSchema = z.object({
     city: z.string().min(2, 'Ville requise'),
     postalCode: z.string().regex(/^\d{5}$/, 'Code postal à 5 chiffres'),
     phone: z.string().optional().or(z.literal('')),
+    website_url: z.string().optional(),
 })
 
 export type CheckoutFormData = z.infer<typeof checkoutSchema>
@@ -51,6 +52,7 @@ export const contactSchema = z.object({
     email: z.string().email('Email invalide'),
     subject: z.string().min(5, 'Sujet requis'),
     message: z.string().min(10, 'Message requis'),
+    website_url: z.string().optional(),
 })
 
 export type ContactFormData = z.infer<typeof contactSchema>

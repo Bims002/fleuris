@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { contactSchema, type ContactFormData } from '@/lib/validations'
 import { FormInput, FormTextarea } from '@/components/ui/form-fields'
+import { Honeypot } from '@/components/ui/honeypot'
 
 export function ContactForm() {
     const {
@@ -12,12 +13,21 @@ export function ContactForm() {
         handleSubmit,
         formState: { errors, isSubmitting, isSubmitSuccessful },
         reset,
+        watch,
     } = useForm<ContactFormData>({
         resolver: zodResolver(contactSchema),
         mode: 'onBlur',
     })
 
+    const honey = watch('website_url')
+
     const onSubmit = async (data: ContactFormData) => {
+        // Honeypot check
+        if (honey) {
+            console.warn('Bot detected via honeypot');
+            return;
+        }
+
         await new Promise(resolve => setTimeout(resolve, 1000))
         console.log('Contact form submitted:', data)
         reset()
@@ -38,6 +48,7 @@ export function ContactForm() {
             )}
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                <Honeypot {...register('website_url')} />
                 <div className="grid md:grid-cols-2 gap-6">
                     <FormInput
                         label="Nom complet"
