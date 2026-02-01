@@ -61,7 +61,7 @@ const checkoutFormSchema = z.object({
 
 type CheckoutFormData = z.infer<typeof checkoutFormSchema>
 
-export function CheckoutForm({ totalAmount }: { totalAmount: number }) {
+export function CheckoutForm({ totalAmount, clientSecret }: { totalAmount: number; clientSecret: string }) {
     const stripe = useStripe();
     const elements = useElements();
     const { clearCart, items } = useCart();
@@ -96,12 +96,20 @@ export function CheckoutForm({ totalAmount }: { totalAmount: number }) {
             const recipientName = `${data.firstName} ${data.lastName}`
             const address = `${data.address}, ${data.zipCode} ${data.city}`
 
+            // Generate a simple tracking token
+            const trackingToken = Math.random().toString(36).substring(2) + Date.now().toString(36)
+
+            // Extract PaymentIntent ID from clientSecret (format: pi_123_secret_456)
+            const stripePaymentId = clientSecret.split('_secret')[0]
+
             // Create Order in Supabase with new fields
             const { data: order, error: orderError } = await supabase
                 .from('orders')
                 .insert({
                     user_id: user?.id || null, // Allow null for guest checkout
-                    // recipient_email: data.email, // TODO: Add after running migration
+                    recipient_email: data.email,
+                    tracking_token: trackingToken,
+                    stripe_payment_id: stripePaymentId,
                     status: 'pending',
                     total_amount: Math.round(totalAmount * 100), // cents
                     recipient_name: recipientName,

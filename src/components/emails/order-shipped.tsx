@@ -2,6 +2,7 @@ import * as React from 'react';
 
 interface OrderShippedEmailProps {
     orderId: string;
+    trackingToken: string;
     customerName: string;
     recipientName: string;
     deliveryDate: string;
@@ -9,6 +10,7 @@ interface OrderShippedEmailProps {
 
 export const OrderShippedEmail: React.FC<OrderShippedEmailProps> = ({
     orderId,
+    trackingToken,
     customerName,
     recipientName,
     deliveryDate,
@@ -27,7 +29,7 @@ export const OrderShippedEmail: React.FC<OrderShippedEmailProps> = ({
         <p>Nous faisons tout notre possible pour que ce moment soit parfait.</p>
 
         <div style={{ textAlign: 'center', marginTop: '30px' }}>
-            <a href={`${process.env.NEXT_PUBLIC_APP_URL}/account/orders/${orderId}`} style={{ backgroundColor: '#9333ea', color: 'white', padding: '12px 24px', borderRadius: '9999px', textDecoration: 'none', fontWeight: 'bold' }}>
+            <a href={`${process.env.NEXT_PUBLIC_SITE_URL}/track-order/${trackingToken}`} style={{ backgroundColor: '#9333ea', color: 'white', padding: '12px 24px', borderRadius: '9999px', textDecoration: 'none', fontWeight: 'bold' }}>
                 Suivre ma commande
             </a>
         </div>

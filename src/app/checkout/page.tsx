@@ -64,7 +64,7 @@ export default function CheckoutPage() {
                     <div className="bg-white rounded-3xl p-8 shadow-sm">
                         {clientSecret ? (
                             <Elements options={options} stripe={stripePromise}>
-                                <CheckoutForm totalAmount={totalAmount} />
+                                <CheckoutForm totalAmount={totalAmount} clientSecret={clientSecret} />
                             </Elements>
                         ) : (
                             <div className="flex justify-center py-20">

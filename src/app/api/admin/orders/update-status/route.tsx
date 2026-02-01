@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
         const { data: order, error: fetchError } = await supabaseAdmin
             .from('orders')
-            .select('*, user:users(email)')
+            .select('*')
             .eq('id', orderId)
             .single();
 
@@ -52,20 +52,34 @@ export async function POST(req: NextRequest) {
             return new NextResponse("Failed to update status", { status: 500 });
         }
 
-        if (status === 'shipped' && order.user?.email) {
+        if (status === 'shipped') {
             try {
-                await resend.emails.send({
-                    from: 'Fleuris <onboarding@resend.dev>',
-                    to: order.user.email,
-                    subject: 'Votre commande est en route ! 🚚',
-                    react: <OrderShippedEmail
-                        orderId={order.id}
-                        customerName={order.recipient_name}
-                        recipientName={order.recipient_name}
-                        deliveryDate={order.delivery_date}
-                    />
-                });
-                console.log(`📧 Shipped email sent to ${order.user.email}`);
+                // Déterminer l'email du client
+                let clientEmail = order.recipient_email;
+
+                // Si pas d'email dans la commande, tenter de le récupérer via l'ID utilisateur
+                if (!clientEmail && order.user_id) {
+                    const { data: { user: authUser } } = await supabaseAdmin.auth.admin.getUserById(order.user_id);
+                    clientEmail = authUser?.email;
+                }
+
+                if (clientEmail) {
+                    await resend.emails.send({
+                        from: 'Fleuris <commandes@fleuris.store>',
+                        to: clientEmail,
+                        subject: 'Votre commande est en route ! 🚚',
+                        react: <OrderShippedEmail
+                            orderId={order.id}
+                            trackingToken={order.tracking_token}
+                            customerName={order.recipient_name}
+                            recipientName={order.recipient_name}
+                            deliveryDate={order.delivery_date}
+                        />
+                    });
+                    console.log(`📧 Shipped email sent to ${clientEmail}`);
+                } else {
+                    console.warn(`⚠️ No email found for order ${order.id}, skipping notification.`);
+                }
             } catch (emailError) {
                 console.error("❌ Failed to send email", emailError);
             }

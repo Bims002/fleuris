@@ -52,7 +52,10 @@ export function ProductCatalog() {
                     price: p.price / 100, // DB stores cents, frontend uses euros
                     category: p.category,
                     imageUrl: p.images?.[0] || '',
-                    images: p.images
+                    images: p.images,
+                    stock_quantity: p.stock_quantity,
+                    track_stock: p.track_stock,
+                    low_stock_threshold: p.low_stock_threshold
                 }))
                 setProducts(formattedProducts)
             }

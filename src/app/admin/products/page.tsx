@@ -17,6 +17,9 @@ type ProductRow = {
     is_available: boolean
     images: string[] | null
     description: string | null
+    stock_quantity: number
+    track_stock: boolean
+    low_stock_threshold: number
 }
 
 export default function AdminProductsPage() {
@@ -105,6 +108,7 @@ export default function AdminProductsPage() {
                                 <th className="px-6 py-4 font-semibold text-gray-700">Nom</th>
                                 <th className="px-6 py-4 font-semibold text-gray-700">Catégorie</th>
                                 <th className="px-6 py-4 font-semibold text-gray-700">Prix</th>
+                                <th className="px-6 py-4 font-semibold text-gray-700">Stock</th>
                                 <th className="px-6 py-4 font-semibold text-gray-700">Statut</th>
                                 <th className="px-6 py-4 font-semibold text-gray-700 text-right">Actions</th>
                             </tr>
@@ -144,10 +148,33 @@ export default function AdminProductsPage() {
                                         <td className="px-6 py-4 text-gray-600">
                                             {(product.price / 100).toFixed(2)} €
                                         </td>
+                                        <td className="px-6 py-4 text-gray-600">
+                                            {product.track_stock ? (
+                                                <span className={product.stock_quantity <= product.low_stock_threshold ? 'text-orange-600 font-medium' : ''}>
+                                                    {product.stock_quantity}
+                                                </span>
+                                            ) : (
+                                                <span className="text-gray-400">∞</span>
+                                            )}
+                                        </td>
                                         <td className="px-6 py-4">
-                                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${product.is_available ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                                                {product.is_available ? 'En stock' : 'Indisponible'}
-                                            </span>
+                                            {!product.is_available ? (
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                    Désactivé
+                                                </span>
+                                            ) : product.track_stock && product.stock_quantity === 0 ? (
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                    Rupture
+                                                </span>
+                                            ) : product.track_stock && product.stock_quantity <= product.low_stock_threshold ? (
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                                    Stock faible
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    Disponible
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 text-right space-x-2">
                                             <Link

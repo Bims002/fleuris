@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
         case "payment_intent.succeeded":
             const paymentIntent = event.data.object as Stripe.PaymentIntent;
 
-            // Find order by payment intent
+            // Find order by payment intent ID
             const { data: orders, error: findError } = await supabase
                 .from("orders")
                 .select(`
@@ -55,21 +55,21 @@ export async function POST(req: NextRequest) {
                         products (name)
                     )
                 `)
-                .eq("status", "pending")
+                .eq("stripe_payment_id", paymentIntent.id)
                 .limit(1);
 
             if (findError || !orders || orders.length === 0) {
-                console.error("Order not found for payment intent");
+                console.error(`Order not found for stripe_payment_id: ${paymentIntent.id}`);
                 return new NextResponse("Order not found", { status: 404 });
             }
 
             const order = orders[0];
 
-            // Update order status
+            // Update order status to 'paid' (matching DB constraints)
             const { error: updateError } = await supabase
                 .from("orders")
                 .update({
-                    status: "processing",
+                    status: "paid",
                     stripe_payment_id: paymentIntent.id
                 })
                 .eq("id", order.id);
@@ -102,7 +102,13 @@ export async function POST(req: NextRequest) {
 
             // Send confirmation email
             try {
-                const customerEmail = paymentIntent.receipt_email || order.recipient_email;
+                let customerEmail = paymentIntent.receipt_email || order.recipient_email;
+
+                // Fallback for older orders or missing data
+                if (!customerEmail && order.user_id) {
+                    const { data: { user: authUser } } = await supabase.auth.admin.getUserById(order.user_id);
+                    customerEmail = authUser?.email;
+                }
 
                 if (customerEmail) {
                     // Utiliser React.createElement au lieu de JSX dans un fichier .ts

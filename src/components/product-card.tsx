@@ -18,6 +18,7 @@ export function ProductCard({ product, index }: ProductCardProps) {
     const [imageError, setImageError] = useState(false)
     const { addItem } = useCart()
     const router = useRouter()
+    const isOutOfStock = product.track_stock !== false && product.stock_quantity === 0
 
     const handleAddToCart = (e: React.MouseEvent) => {
         // ... existing handleAddToCart logic ...
@@ -62,13 +63,21 @@ export function ProductCard({ product, index }: ProductCardProps) {
                     <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold text-gray-900 shadow-sm">
                         {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(product.price)}
                     </div>
+
+                    {isOutOfStock && (
+                        <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center p-4">
+                            <span className="bg-red-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg transform -rotate-12 uppercase tracking-wider">
+                                Indisponible
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 <div className="p-6">
                     <div className="mb-2 text-xs font-medium text-purple-600 uppercase tracking-wide">
                         {product.category}
                     </div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-purple-600 transition-colors">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-purple-600 transition-colors line-clamp-1">
                         {product.name}
                     </h3>
                     <p className="text-sm text-gray-500 line-clamp-2 mb-4">
@@ -77,10 +86,14 @@ export function ProductCard({ product, index }: ProductCardProps) {
 
                     <button
                         onClick={handleAddToCart}
-                        className="w-full py-3 flex items-center justify-center gap-2 bg-gray-900 text-white rounded-xl font-medium hover:bg-purple-600 transition-colors active:scale-95 z-20 relative"
+                        disabled={isOutOfStock}
+                        className={`w-full py-3 flex items-center justify-center gap-2 rounded-xl font-medium transition-all active:scale-95 z-20 relative ${isOutOfStock
+                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            : 'bg-gray-900 text-white hover:bg-purple-600 shadow-sm hover:shadow-md'
+                            }`}
                     >
                         <ShoppingBag size={18} />
-                        Ajouter au panier
+                        {isOutOfStock ? 'Indisponible' : 'Ajouter au panier'}
                     </button>
                 </div>
             </Link>
