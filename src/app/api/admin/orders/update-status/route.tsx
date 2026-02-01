@@ -49,8 +49,11 @@ export async function POST(req: NextRequest) {
             .eq('id', orderId);
 
         if (updateError) {
+            console.error(`❌ Failed to update order ${orderId} to ${status}:`, updateError);
             return new NextResponse("Failed to update status", { status: 500 });
         }
+
+        console.log(`✅ Order ${orderId} status manually updated to ${status} by admin`);
 
         if (status === 'shipped') {
             try {

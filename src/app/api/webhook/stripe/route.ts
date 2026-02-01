@@ -41,9 +41,12 @@ export async function POST(req: NextRequest) {
         process.env.SUPABASE_SERVICE_ROLE_KEY as string
     );
 
+    console.log(`🔔 Received Stripe event: ${event.type}`);
+
     switch (event.type) {
         case "payment_intent.succeeded":
             const paymentIntent = event.data.object as Stripe.PaymentIntent;
+            console.log(`💰 PaymentIntent Succeeded: ${paymentIntent.id}`);
 
             // Find order by payment intent ID
             const { data: orders, error: findError } = await supabase
@@ -58,14 +61,31 @@ export async function POST(req: NextRequest) {
                 .eq("stripe_payment_id", paymentIntent.id)
                 .limit(1);
 
-            if (findError || !orders || orders.length === 0) {
-                console.error(`Order not found for stripe_payment_id: ${paymentIntent.id}`);
+            if (findError) {
+                console.error(`❌ Database error finding order:`, findError);
+                return new NextResponse("Database Error", { status: 500 });
+            }
+
+            if (!orders || orders.length === 0) {
+                console.error(`⚠️ Order not found for stripe_payment_id: ${paymentIntent.id}`);
+                // Re-essayer avec metadata ?
+                const orderIdFromMetadata = paymentIntent.metadata.orderId;
+                if (orderIdFromMetadata) {
+                    console.log(`🔍 Attempting to find order by metadata ID: ${orderIdFromMetadata}`);
+                    // On pourrait ajouter une logique de retry ici
+                }
                 return new NextResponse("Order not found", { status: 404 });
             }
 
             const order = orders[0];
+            console.log(`📦 Found Order: ${order.id} (Status: ${order.status})`);
 
-            // Update order status to 'paid' (matching DB constraints)
+            if (order.status === 'paid') {
+                console.log(`ℹ️ Order ${order.id} is already marked as paid. Skipping.`);
+                break;
+            }
+
+            // Update order status to 'paid'
             const { error: updateError } = await supabase
                 .from("orders")
                 .update({
@@ -75,14 +95,15 @@ export async function POST(req: NextRequest) {
                 .eq("id", order.id);
 
             if (updateError) {
-                console.error(`Error updating order ${order.id}:`, updateError);
+                console.error(`❌ Error updating order ${order.id}:`, updateError);
                 return new NextResponse("Database Error", { status: 500 });
             }
 
-            console.log(`✅ Payment successful for Order ${order.id}`);
+            console.log(`✅ Order ${order.id} status updated to 'paid'`);
 
             // Deduct stock for each order item
             try {
+                console.log(`📉 Starting stock deduction for Order ${order.id}...`);
                 const { deductStock } = await import('@/lib/stock-manager');
 
                 for (const item of order.order_items) {
@@ -91,27 +112,23 @@ export async function POST(req: NextRequest) {
                         console.log(`📦 Stock deducted for product ${item.product_id}: -${item.quantity}`);
                     } catch (stockError: any) {
                         console.error(`❌ Failed to deduct stock for product ${item.product_id}:`, stockError);
-                        // Continue with other items even if one fails
                     }
                 }
             } catch (error) {
-                console.error('❌ Error importing stock manager:', error);
-                // Don't fail the webhook if stock deduction fails
+                console.error('❌ Error in stock deduction block:', error);
             }
-
 
             // Send confirmation email
             try {
+                console.log(`📧 Preparing confirmation email for Order ${order.id}...`);
                 let customerEmail = paymentIntent.receipt_email || order.recipient_email;
 
-                // Fallback for older orders or missing data
                 if (!customerEmail && order.user_id) {
                     const { data: { user: authUser } } = await supabase.auth.admin.getUserById(order.user_id);
                     customerEmail = authUser?.email;
                 }
 
                 if (customerEmail) {
-                    // Utiliser React.createElement au lieu de JSX dans un fichier .ts
                     const emailElement = React.createElement(OrderConfirmationEmail, {
                         orderNumber: order.id.slice(0, 8),
                         customerName: order.recipient_name,
@@ -143,17 +160,18 @@ export async function POST(req: NextRequest) {
                         html: emailHtml
                     });
 
-                    console.log(`📧 Confirmation email sent to ${customerEmail}`);
+                    console.log(`📧 Confirmation email successfully sent to ${customerEmail}`);
+                } else {
+                    console.warn(`⚠️ No customer email found for Order ${order.id}`);
                 }
             } catch (emailError) {
-                console.error("❌ Error sending email:", emailError);
-                // Don't fail the webhook if email fails
+                console.error("❌ Error in email sending block:", emailError);
             }
             break;
 
         default:
-            console.log(`Unhandled event type ${event.type}`);
+            console.log(`ℹ️ Unhandled event type ${event.type}`);
     }
 
-    return new NextResponse("Received", { status: 200 });
+    return new NextResponse("Webhook processed successfully", { status: 200 });
 }

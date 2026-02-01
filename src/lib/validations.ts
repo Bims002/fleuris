@@ -58,7 +58,7 @@ export type ContactFormData = z.infer<typeof contactSchema>
 // Schéma pour le statut de commande
 export const orderStatusSchema = z.object({
     orderId: z.string().uuid(),
-    status: z.enum(['pending', 'processing', 'shipped', 'delivered', 'cancelled']),
+    status: z.enum(['pending', 'paid', 'preparing', 'shipped', 'delivered', 'cancelled']),
 })
 
 export type OrderStatusData = z.infer<typeof orderStatusSchema>
