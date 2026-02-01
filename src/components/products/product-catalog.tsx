@@ -129,7 +129,7 @@ export function ProductCatalog() {
                         <>
                             {/* Temporary Debug Info */}
                             <div className="text-xs text-gray-400 text-center mb-4">
-                                {products.length} produits trouvés. {occasionFilter ? `Filtre: ${occasionFilter}` : ''}
+                                {filteredProducts.length} produit{filteredProducts.length > 1 ? 's' : ''} trouvé{filteredProducts.length > 1 ? 's' : ''}. {occasionFilter ? `Filtre: ${occasionFilter}` : ''}
                             </div>
 
                             {filteredProducts.length > 0 ? (

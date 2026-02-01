@@ -66,75 +66,49 @@ export function CookieConsentBanner() {
     if (!isVisible) return null
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 z-50 p-4 md:p-6">
-            <div className="max-w-6xl mx-auto bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl shadow-2xl border border-gray-700 backdrop-blur-lg">
-                <div className="p-6 md:p-8">
+        <div className="fixed bottom-0 left-0 right-0 z-50 p-3">
+            <div className="max-w-4xl mx-auto bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200">
+                <div className="p-4">
                     {/* Close button */}
                     <button
                         onClick={handleClose}
-                        className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+                        className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors"
                         aria-label="Fermer"
                     >
-                        <X size={20} />
+                        <X size={16} />
                     </button>
 
-                    <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+                    <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
                         {/* Icon & Text */}
                         <div className="flex-1">
-                            <div className="flex items-start gap-4">
-                                <span className="text-4xl">🍪</span>
+                            <div className="flex items-start gap-3">
+                                <span className="text-2xl">🍪</span>
                                 <div>
-                                    <h3 className="text-xl font-bold text-white mb-2">
-                                        Gestion des cookies
+                                    <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                                        Cookies
                                     </h3>
-                                    <p className="text-gray-300 text-sm leading-relaxed mb-3">
-                                        Nous utilisons des cookies pour améliorer votre expérience de navigation,
-                                        analyser le trafic du site et comprendre comment vous interagissez avec nos services.
-                                    </p>
-                                    <p className="text-gray-400 text-xs">
-                                        Les cookies nécessaires incluent l'analyse de trafic anonymisée pour améliorer nos services.
+                                    <p className="text-gray-600 text-xs leading-relaxed">
+                                        Nous utilisons des cookies pour améliorer votre expérience et analyser le trafic.
                                     </p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Buttons */}
-                        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                        <div className="flex gap-2 w-full md:w-auto">
                             <button
                                 onClick={handleAcceptNecessary}
-                                className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-full font-semibold text-sm transition-all duration-200 border border-gray-600 whitespace-nowrap"
+                                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium text-xs transition-all duration-200 whitespace-nowrap"
                             >
-                                Cookies nécessaires
+                                Nécessaires
                             </button>
                             <button
                                 onClick={handleAcceptAll}
-                                className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-full font-semibold text-sm transition-all duration-200 shadow-lg hover:shadow-xl whitespace-nowrap"
+                                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium text-xs transition-all duration-200 whitespace-nowrap"
                             >
-                                Tous les cookies
+                                Accepter
                             </button>
                         </div>
-                    </div>
-
-                    {/* Details */}
-                    <div className="mt-4 pt-4 border-t border-gray-700">
-                        <details className="text-xs text-gray-400">
-                            <summary className="cursor-pointer hover:text-gray-300 transition-colors">
-                                En savoir plus sur les cookies
-                            </summary>
-                            <div className="mt-3 space-y-2 pl-4">
-                                <p>
-                                    <strong className="text-gray-300">Cookies nécessaires :</strong> Essentiels au fonctionnement du site
-                                    (panier, authentification) + analyse de trafic anonymisée (Google Analytics).
-                                </p>
-                                <p>
-                                    <strong className="text-gray-300">Tous les cookies :</strong> Cookies nécessaires + cookies marketing
-                                    pour personnaliser votre expérience et afficher des publicités pertinentes.
-                                </p>
-                                <p className="text-gray-500">
-                                    Vous pouvez modifier vos préférences à tout moment en supprimant les cookies de votre navigateur.
-                                </p>
-                            </div>
-                        </details>
                     </div>
                 </div>
             </div>
