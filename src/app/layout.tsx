@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/context/cart-context";
+import { WishlistProvider } from "@/context/wishlist-context";
 import { Footer } from "@/components/footer";
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { CookieConsentBanner } from '@/components/cookie-consent';
@@ -53,8 +54,10 @@ export default function RootLayout({
         className={`${playfair.variable} ${inter.variable} font-sans antialiased`}
       >
         <CartProvider>
-          {children}
-          <Footer />
+          <WishlistProvider>
+            {children}
+            <Footer />
+          </WishlistProvider>
         </CartProvider>
 
         {/* Google Analytics 4 */}

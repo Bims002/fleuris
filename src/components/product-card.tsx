@@ -7,7 +7,9 @@ import Image from 'next/image'
 import { ShoppingBag } from 'lucide-react'
 import Link from 'next/link'
 import { useCart } from '@/context/cart-context'
+import { useWishlist } from '@/context/wishlist-context'
 import { useRouter } from 'next/navigation'
+import { Heart } from 'lucide-react'
 
 interface ProductCardProps {
     product: Product
@@ -17,8 +19,16 @@ interface ProductCardProps {
 export function ProductCard({ product, index }: ProductCardProps) {
     const [imageError, setImageError] = useState(false)
     const { addItem } = useCart()
+    const { toggleFavorite, isFavorite } = useWishlist()
     const router = useRouter()
     const isOutOfStock = product.track_stock !== false && product.stock_quantity === 0
+    const favorited = isFavorite(product.id)
+
+    const handleFavorite = (e: React.MouseEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        toggleFavorite(product.id)
+    }
 
     const handleAddToCart = (e: React.MouseEvent) => {
         // ... existing handleAddToCart logic ...
@@ -60,8 +70,19 @@ export function ProductCard({ product, index }: ProductCardProps) {
                         </div>
                     )}
 
-                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold text-gray-900 shadow-sm">
-                        {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(product.price)}
+                    <div className="absolute top-4 right-4 z-30 flex flex-col gap-2">
+                        <div className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold text-gray-900 shadow-sm">
+                            {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(product.price)}
+                        </div>
+                        <button
+                            onClick={handleFavorite}
+                            className={`p-2 rounded-full backdrop-blur-sm transition-all shadow-sm ${favorited
+                                    ? 'bg-red-50 text-red-500 hover:bg-red-100'
+                                    : 'bg-white/90 text-gray-400 hover:text-red-500 hover:bg-white'
+                                }`}
+                        >
+                            <Heart size={18} fill={favorited ? "currentColor" : "none"} strokeWidth={favorited ? 0 : 2} />
+                        </button>
                     </div>
 
                     {isOutOfStock && (

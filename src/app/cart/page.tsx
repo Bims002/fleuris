@@ -4,6 +4,7 @@ import { Navbar } from '@/components/navbar'
 import { useCart } from '@/context/cart-context'
 import { Trash2, Plus, Minus, ArrowRight, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { checkMultipleStockAvailability } from '@/lib/stock-manager'
@@ -12,6 +13,11 @@ export default function CartPage() {
     const { items, removeItem, updateQuantity, totalValues } = useCart()
     const [stockWarnings, setStockWarnings] = useState<string[]>([])
     const [checkingStock, setCheckingStock] = useState(false)
+    const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({})
+
+    const handleImageError = (id: string) => {
+        setImageErrors(prev => ({ ...prev, [id]: true }))
+    }
 
     // Vérifier le stock au chargement et quand le panier change
     useEffect(() => {
@@ -85,9 +91,19 @@ export default function CartPage() {
                                         >
                                             {/* Image Thumbnail */}
                                             <div className="w-24 h-24 bg-gray-100 rounded-xl flex-shrink-0 overflow-hidden relative">
-                                                {/* Fallback image logic */}
-                                                <div className="absolute inset-0 bg-gray-200" />
-                                                {/* In real app: <Image src={item.product.images?.[0] || item.product.imageUrl} ... /> */}
+                                                {(!imageErrors[item.product.id] && (item.product.images?.[0] || item.product.imageUrl)) ? (
+                                                    <Image
+                                                        src={item.product.images?.[0] || item.product.imageUrl || '/placeholder-1.jpg'}
+                                                        alt={item.product.name}
+                                                        fill
+                                                        className="object-cover"
+                                                        onError={() => handleImageError(item.product.id)}
+                                                    />
+                                                ) : (
+                                                    <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400 font-serif opacity-20 text-xs">
+                                                        Fleuris
+                                                    </div>
+                                                )}
                                             </div>
 
                                             {/* Details */}

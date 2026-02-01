@@ -7,6 +7,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/context/cart-context'
+import { useWishlist } from '@/context/wishlist-context'
 import { Navbar } from '@/components/navbar'
 import { getStockStatus, checkStockAvailability } from '@/lib/stock-manager'
 import { trackProductView, trackAddToCart } from '@/lib/analytics'
@@ -14,6 +15,8 @@ import { trackProductView, trackAddToCart } from '@/lib/analytics'
 export function ProductDetails({ product }: { product: any }) {
     const router = useRouter()
     const { addItem } = useCart()
+    const { toggleFavorite, isFavorite } = useWishlist()
+    const isFavorited = isFavorite(product.id)
 
     // Selection states
     const [quantity, setQuantity] = useState(1)
@@ -250,8 +253,15 @@ export function ProductDetails({ product }: { product: any }) {
                                 )}
                             </button>
 
-                            <button className="p-4 rounded-full border border-gray-200 text-gray-500 hover:text-red-500 hover:border-red-100 hover:bg-red-50 transition-all">
-                                <Heart size={24} />
+                            <button
+                                type="button"
+                                onClick={() => toggleFavorite(product.id)}
+                                className={`p-4 rounded-full border transition-all shadow-sm active:scale-95 ${isFavorited
+                                    ? 'bg-red-50 border-red-100 text-red-500'
+                                    : 'bg-white border-gray-200 text-gray-500 hover:text-red-500 hover:border-red-100 hover:bg-red-50'
+                                    }`}
+                            >
+                                <Heart size={24} fill={isFavorited ? "currentColor" : "none"} strokeWidth={isFavorited ? 0 : 2} />
                             </button>
                         </div>
 
