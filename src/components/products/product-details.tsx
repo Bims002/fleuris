@@ -225,14 +225,14 @@ export function ProductDetails({ product }: { product: any }) {
                 {/* Modal (Simplified) */}
                 <AnimatePresence>
                     {showAddedModal && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
-                                <div className="w-20 h-20 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6"><ShoppingCart size={40} /></div>
-                                <h3 className="text-2xl font-bold mb-2">Ajouté !</h3>
-                                <p className="text-gray-600 mb-8">Le bouquet est dans votre panier.</p>
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+                            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl border border-gray-100">
+                                <div className="w-20 h-20 bg-green-100 text-green-700 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm"><ShoppingCart size={40} strokeWidth={2.5} /></div>
+                                <h3 className="text-2xl font-bold text-gray-900 mb-2">Ajouté au panier !</h3>
+                                <p className="text-gray-800 font-medium mb-8">Votre bouquet a été ajouté avec succès.</p>
                                 <div className="space-y-3">
-                                    <button onClick={() => router.push('/cart')} className="w-full py-4 bg-gray-900 text-white rounded-full font-bold">Voir mon panier</button>
-                                    <button onClick={() => setShowAddedModal(false)} className="w-full py-4 bg-white border border-gray-200 rounded-full font-bold">Continuer</button>
+                                    <button onClick={() => router.push('/cart')} className="w-full py-4 bg-gray-900 text-white rounded-full font-bold hover:bg-black transition-all shadow-lg active:scale-95">Voir mon panier</button>
+                                    <button onClick={() => setShowAddedModal(false)} className="w-full py-4 bg-white border-2 border-gray-200 text-gray-900 rounded-full font-bold hover:bg-gray-50 transition-all">Continuer mes achats</button>
                                 </div>
                             </motion.div>
                         </div>
