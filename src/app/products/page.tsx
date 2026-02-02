@@ -7,6 +7,12 @@ export const metadata: Metadata = {
     description: 'Parcourez notre collection de fleurs fraîches. Bouquets ronds, grandes roses, plantes vertes. Livraison express.',
 }
 
+import { Suspense } from 'react'
+
 export default function ProductsPage() {
-    return <ProductCatalog />
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-white" />}>
+            <ProductCatalog />
+        </Suspense>
+    )
 }
