@@ -16,7 +16,7 @@ export function Footer() {
                                 Fleuris
                             </span>
                         </Link>
-                        <p className="text-gray-500 text-sm leading-relaxed mb-6">
+                        <p className="text-gray-800 font-medium text-sm leading-relaxed mb-6">
                             L'art de la fleur, livré avec émotion. Des bouquets uniques créés avec passion pour tous vos moments précieux.
                         </p>
                         <div className="flex gap-4">
@@ -42,7 +42,7 @@ export function Footer() {
                     {/* Navigation Links */}
                     <div>
                         <h4 className="font-serif font-bold text-gray-900 mb-6">Boutique</h4>
-                        <ul className="space-y-3 text-sm text-gray-500">
+                        <ul className="space-y-3 text-sm text-gray-700 font-medium">
                             <li><Link href="/products" className="hover:text-purple-600 transition-colors">Tous les Bouquets</Link></li>
                             <li><Link href="/products?occasion=anniversaire" className="hover:text-purple-600 transition-colors">Anniversaire</Link></li>
                             <li><Link href="/products?occasion=amour" className="hover:text-purple-600 transition-colors">Amour & Romance</Link></li>
@@ -54,7 +54,7 @@ export function Footer() {
                     {/* Customer Service */}
                     <div>
                         <h4 className="font-serif font-bold text-gray-900 mb-6">Aide & Info</h4>
-                        <ul className="space-y-3 text-sm text-gray-500">
+                        <ul className="space-y-3 text-sm text-gray-700 font-medium">
                             <li><Link href="/account/orders" className="hover:text-purple-600 transition-colors">Suivre ma commande</Link></li>
                             <li><Link href="/faq" className="hover:text-purple-600 transition-colors">FAQ</Link></li>
                             <li><Link href="/contact" className="hover:text-purple-600 transition-colors">Nous Contacter</Link></li>
@@ -65,7 +65,7 @@ export function Footer() {
                     {/* Legal */}
                     <div>
                         <h4 className="font-serif font-bold text-gray-900 mb-6">Légal</h4>
-                        <ul className="space-y-3 text-sm text-gray-500">
+                        <ul className="space-y-3 text-sm text-gray-700 font-medium">
                             <li><Link href="/legal/terms" className="hover:text-purple-600 transition-colors">CGV</Link></li>
                             <li><Link href="/legal/privacy" className="hover:text-purple-600 transition-colors">Politique de Confidentialité</Link></li>
                             <li><Link href="/legal/cookies" className="hover:text-purple-600 transition-colors">Gestion des cookies</Link></li>
@@ -75,10 +75,10 @@ export function Footer() {
 
                 {/* Bottom Bar */}
                 <div className="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-700 font-bold">
                         © {currentYear} Fleuris. Tous droits réservés.
                     </p>
-                    <p className="text-xs text-gray-400 flex items-center gap-1">
+                    <p className="text-xs text-gray-700 font-bold flex items-center gap-1">
                         Fait avec <Heart size={12} className="text-red-500 fill-red-500" /> en France
                     </p>
                 </div>

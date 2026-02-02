@@ -13,7 +13,7 @@ export const FormInput = forwardRef<HTMLInputElement, FormFieldProps>(
 
         return (
             <div>
-                <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor={inputId} className="block text-sm font-bold text-gray-900 mb-2">
                     {label} {required && <span className="text-red-500">*</span>}
                 </label>
                 <input

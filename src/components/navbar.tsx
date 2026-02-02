@@ -66,10 +66,10 @@ export function Navbar() {
                             <Link
                                 key={link.name}
                                 href={link.href}
-                                className="text-sm font-medium text-gray-600 hover:text-purple-600 transition-colors relative group"
+                                className="text-sm font-bold text-gray-800 hover:text-purple-700 transition-colors relative group"
                             >
                                 {link.name}
-                                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-purple-600 transition-all group-hover:w-full" />
+                                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-purple-700 transition-all group-hover:w-full" />
                             </Link>
                         ))}
                     </div>
@@ -116,7 +116,7 @@ export function Navbar() {
                                             >
                                                 <div className="px-4 py-3 border-b border-gray-50 bg-gray-50/50">
                                                     <p className="text-sm font-semibold text-gray-900">Mon Compte</p>
-                                                    <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                                                    <p className="text-xs text-gray-700 font-medium truncate">{user.email}</p>
                                                 </div>
 
                                                 <div className="py-1">

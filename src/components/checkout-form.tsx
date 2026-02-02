@@ -281,10 +281,10 @@ export function CheckoutForm({ totalAmount, clientSecret }: { totalAmount: numbe
                         error={errors.cardMessage}
                     />
                     <div className="flex justify-between items-center text-[10px] md:text-xs mt-1 px-1">
-                        <p className="text-gray-400">
+                        <p className="text-gray-700 font-medium">
                             Sera écrit à la main sur une jolie carte.
                         </p>
-                        <span className={(cardMessage || '').length > 180 ? "text-orange-500" : "text-gray-400"}>
+                        <span className={(cardMessage || '').length > 180 ? "text-orange-600 font-bold" : "text-gray-600"}>
                             {(cardMessage || '').length}/200
                         </span>
                     </div>
@@ -296,7 +296,7 @@ export function CheckoutForm({ totalAmount, clientSecret }: { totalAmount: numbe
                         <span className="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-sm">4</span>
                         Informations de l'Expéditeur
                     </h3>
-                    <p className="text-sm text-gray-500 mb-6 italic">
+                    <p className="text-sm text-gray-700 mb-6 italic font-medium">
                         Ces informations servent à la facturation et à vous envoyer le reçu de paiement.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -346,13 +346,13 @@ export function CheckoutForm({ totalAmount, clientSecret }: { totalAmount: numbe
                     </div>
 
                     <div className="mt-8 space-y-4">
-                        <div className="flex justify-between items-center text-gray-600 mb-2">
+                        <div className="flex justify-between items-center text-gray-800 font-medium mb-2">
                             <span>Sous-total</span>
                             <span>{totalAmount.toFixed(2)} €</span>
                         </div>
-                        <div className="flex justify-between items-center text-gray-600 pb-4 border-b border-gray-100">
+                        <div className="flex justify-between items-center text-gray-800 font-medium pb-4 border-b border-gray-100">
                             <span>Livraison</span>
-                            <span className="text-green-600 font-medium">Gratuite</span>
+                            <span className="text-green-700 font-bold">Gratuite</span>
                         </div>
                         <div className="flex justify-between items-center text-xl font-bold text-gray-900 pt-2">
                             <span>Total</span>
@@ -377,8 +377,8 @@ export function CheckoutForm({ totalAmount, clientSecret }: { totalAmount: numbe
                             )}
                         </button>
 
-                        <p className="text-center text-xs text-gray-500 mt-4 flex items-center justify-center gap-2">
-                            <ShieldCheck size={14} className="text-green-600" />
+                        <p className="text-center text-xs text-gray-700 font-medium mt-4 flex items-center justify-center gap-2">
+                            <ShieldCheck size={14} className="text-green-700" />
                             Paiement 100% sécurisé via Stripe
                         </p>
                     </div>

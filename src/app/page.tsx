@@ -34,7 +34,7 @@ export default function Home() {
                 avec des fleurs.
               </span>
             </h1>
-            <p className="text-base md:text-xl text-gray-500 max-w-lg mx-auto lg:mx-0 mb-8 md:mb-10 leading-relaxed font-light">
+            <p className="text-base md:text-xl text-gray-800 max-w-lg mx-auto lg:mx-0 mb-8 md:mb-10 leading-relaxed font-medium">
               Des bouquets uniques conçus avec passion.
               Livrés en main propre, sans carton, juste de l'émotion.
             </p>
@@ -80,7 +80,7 @@ export default function Home() {
               <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 font-serif">
                 Pour chaque moment
               </h2>
-              <p className="text-gray-500 text-lg">Choisissez selon l'occasion.</p>
+              <p className="text-gray-800 font-medium text-lg">Choisissez selon l'occasion.</p>
             </div>
             <Link href="/products" className="hidden md:flex items-center gap-2 text-purple-600 font-semibold hover:text-purple-700 transition-colors">
               Tout voir <ArrowRight size={20} />
