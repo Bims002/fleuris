@@ -35,12 +35,16 @@ export type ProductFormData = z.infer<typeof productFormSchema>
 
 // Schéma pour le checkout
 export const checkoutSchema = z.object({
-    email: z.string().email('Email invalide'),
-    name: z.string().min(2, 'Nom requis'),
-    address: z.string().min(5, 'Adresse requise'),
-    city: z.string().min(2, 'Ville requise'),
-    postalCode: z.string().regex(/^\d{5}$/, 'Code postal à 5 chiffres'),
-    phone: z.string().optional().or(z.literal('')),
+    recipientFirstName: z.string().min(2, 'Prénom requis'),
+    recipientLastName: z.string().min(2, 'Nom requis'),
+    recipientPhone: z.string().min(10, 'Téléphone requis'),
+    recipientAddress: z.string().min(5, 'Adresse requise'),
+    recipientCity: z.string().min(2, 'Ville requise'),
+    recipientZip: z.string().regex(/^\d{5}$/, 'Code postal à 5 chiffres'),
+    senderFirstName: z.string().min(2, 'Prénom requis'),
+    senderLastName: z.string().min(2, 'Nom requis'),
+    senderEmail: z.string().email('Email invalide'),
+    senderPhone: z.string().min(10, 'Téléphone requis'),
     website_url: z.string().optional(),
 })
 

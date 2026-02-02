@@ -14,6 +14,7 @@ export default function AdminLayout({
 }) {
     const [userEmail, setUserEmail] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState(true)
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const router = useRouter()
     const pathname = usePathname()
     const supabase = createClient()
@@ -61,31 +62,53 @@ export default function AdminLayout({
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 flex">
-            <AdminSidebar />
-            <div className="flex-1 ml-64">
-                {/* Header avec logout */}
-                <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-gray-900">Administration Fleuris</h2>
+        <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
+            {/* Sidebar avec gestion mobile */}
+            <AdminSidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+
+            {/* Overlay mobile */}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
+
+            <div className="flex-1 flex flex-col min-w-0">
+                {/* Header Admin */}
+                <header className="bg-white border-b border-gray-200 px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-30">
                     <div className="flex items-center gap-4">
+                        {/* Toggle Sidebar Mobile */}
+                        <button
+                            onClick={() => setIsSidebarOpen(true)}
+                            className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+                            </svg>
+                        </button>
+                        <h2 className="text-lg font-semibold text-gray-900 truncate">Administration Fleuris</h2>
+                    </div>
+
+                    <div className="flex items-center gap-2 md:gap-4">
                         {userEmail && (
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <div className="hidden sm:flex items-center gap-2 text-sm text-gray-600">
                                 <User size={16} />
-                                <span>{userEmail}</span>
+                                <span className="max-w-[150px] truncate">{userEmail}</span>
                             </div>
                         )}
                         <button
                             onClick={handleLogout}
-                            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            className="flex items-center gap-2 px-3 md:px-4 py-2 text-sm text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors whitespace-nowrap"
                         >
                             <LogOut size={16} />
-                            Déconnexion
+                            <span className="hidden xs:inline">Déconnexion</span>
                         </button>
                     </div>
                 </header>
 
                 {/* Contenu */}
-                <main className="p-8">
+                <main className="p-4 md:p-8">
                     {children}
                 </main>
             </div>

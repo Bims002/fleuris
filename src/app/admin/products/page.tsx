@@ -85,21 +85,21 @@ export default function AdminProductsPage() {
             </header>
 
             {/* Filters & Search */}
-            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
-                <div className="relative flex-1 max-w-md">
+            <div className="bg-white p-3 md:p-4 rounded-xl border border-gray-100 shadow-sm">
+                <div className="relative w-full md:max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                     <input
                         type="text"
                         placeholder="Rechercher un bouquet..."
-                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
             </div>
 
-            {/* Table */}
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+            {/* Desktop Table View */}
+            <div className="hidden md:block bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-gray-50 border-b border-gray-100">
@@ -116,11 +116,11 @@ export default function AdminProductsPage() {
                         <tbody className="divide-y divide-gray-100">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">Chargement...</td>
+                                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">Chargement...</td>
                                 </tr>
                             ) : filteredProducts.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">Aucun produit trouvé.</td>
+                                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">Aucun produit trouvé.</td>
                                 </tr>
                             ) : (
                                 filteredProducts.map((product) => (
@@ -198,6 +198,61 @@ export default function AdminProductsPage() {
                         </tbody>
                     </table>
                 </div>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-4">
+                {loading ? (
+                    <div className="text-center py-8 text-gray-500">Chargement...</div>
+                ) : filteredProducts.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">Aucun produit trouvé.</div>
+                ) : (
+                    filteredProducts.map((product) => (
+                        <div key={product.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
+                            <div className="flex items-center gap-4">
+                                <div className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden relative border border-gray-200 flex-shrink-0">
+                                    {product.images?.[0] ? (
+                                        <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">IMG</div>
+                                    )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="font-bold text-gray-900 truncate">{product.name}</h3>
+                                    <p className="text-sm text-purple-600 font-medium capitalize">{product.category || 'Non classé'}</p>
+                                    <p className="text-gray-900 font-bold">{(product.price / 100).toFixed(2)} €</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-between pt-4 border-t border-gray-50">
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Statut</span>
+                                    {!product.is_available ? (
+                                        <span className="text-xs font-bold text-gray-500">Désactivé</span>
+                                    ) : product.track_stock && product.stock_quantity === 0 ? (
+                                        <span className="text-xs font-bold text-red-600">Rupture de stock</span>
+                                    ) : (
+                                        <span className="text-xs font-bold text-green-600">Disponible ({product.stock_quantity})</span>
+                                    )}
+                                </div>
+                                <div className="flex gap-2">
+                                    <Link
+                                        href={`/admin/products/${product.id}`}
+                                        className="p-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-purple-50 hover:text-purple-600"
+                                    >
+                                        <Edit size={20} />
+                                    </Link>
+                                    <button
+                                        onClick={() => handleDelete(product.id)}
+                                        className="p-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-red-50 hover:text-red-600"
+                                    >
+                                        <Trash2 size={20} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                )}
             </div>
         </div>
     )

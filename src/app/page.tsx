@@ -22,34 +22,34 @@ export default function Home() {
       <Navbar />
 
       {/* Hero Section - Émotionnelle & Minimaliste */}
-      <section className="relative pt-32 pb-20 px-6 sm:px-12 lg:px-24 overflow-hidden">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div className="z-10">
-            <span className="text-purple-600 font-medium tracking-wider uppercase text-sm mb-4 block">
+      <section className="relative pt-24 md:pt-32 pb-12 md:pb-20 px-6 sm:px-12 lg:px-24 overflow-hidden">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
+          <div className="z-10 text-center lg:text-left">
+            <span className="text-purple-600 font-medium tracking-wider uppercase text-xs md:sm mb-4 block">
               Livraison de fleurs artisanales
             </span>
-            <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold text-gray-900 leading-[0.9] mb-8 font-serif tracking-tight">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-gray-900 leading-[1] md:leading-[0.9] mb-6 md:mb-8 font-serif tracking-tight">
               Dites-le <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500">
                 avec des fleurs.
               </span>
             </h1>
-            <p className="text-lg md:text-xl text-gray-500 max-w-lg mb-10 leading-relaxed font-light">
+            <p className="text-base md:text-xl text-gray-500 max-w-lg mx-auto lg:mx-0 mb-8 md:mb-10 leading-relaxed font-light">
               Des bouquets uniques conçus avec passion.
               Livrés en main propre, sans carton, juste de l'émotion.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/products" className="px-8 py-4 rounded-full bg-gray-900 text-white font-semibold text-lg hover:bg-black transition-all transform hover:scale-105 shadow-lg text-center">
+            <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
+              <Link href="/products" className="w-full sm:w-auto px-8 py-4 rounded-full bg-gray-900 text-white font-semibold text-lg hover:bg-black transition-all transform hover:scale-105 shadow-lg text-center">
                 Envoyer des fleurs
               </Link>
-              <Link href="/about" className="px-8 py-4 rounded-full bg-gray-50 text-gray-900 border border-gray-200 font-semibold text-lg hover:bg-gray-100 transition-all text-center">
+              <Link href="/about" className="w-full sm:w-auto px-8 py-4 rounded-full bg-gray-50 text-gray-900 border border-gray-200 font-semibold text-lg hover:bg-gray-100 transition-all text-center">
                 Comment ça marche ?
               </Link>
             </div>
           </div>
 
           {/* Hero Image */}
-          <div className="relative h-[500px] w-full rounded-[3rem] overflow-hidden shadow-2xl">
+          <div className="relative aspect-square sm:aspect-video lg:aspect-auto lg:h-[600px] w-full rounded-3xl md:rounded-[3rem] overflow-hidden shadow-2xl">
             <Image
               src="/images/flowers-delivery.png"
               alt="Bouquet de fleurs artisanal Fleuris"

@@ -82,11 +82,11 @@ export function ProductCatalog() {
         <main className="min-h-screen bg-white">
             <Navbar />
 
-            <section className="pt-32 pb-12 px-6 md:px-12 bg-white border-b border-gray-50">
+            <section className="pt-24 md:pt-32 pb-8 md:pb-12 px-4 md:px-12 bg-white border-b border-gray-50">
                 <div className="max-w-7xl mx-auto">
-                    <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 font-serif">Notre Collection</h1>
+                    <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6 font-serif">Notre Collection</h1>
 
-                    <div className="flex flex-wrap gap-4 items-center">
+                    <div className="flex flex-wrap gap-3 md:gap-4 items-center">
                         {/* Filters */}
                         <FilterDropdown
                             label="Occasion"
@@ -124,7 +124,7 @@ export function ProductCatalog() {
                 </div>
             </section>
 
-            <section className="py-12 px-6 md:px-12">
+            <section className="py-8 md:py-12 px-4 md:px-12">
                 <div className="max-w-7xl mx-auto">
                     {loading ? (
                         <div className="text-center py-20 text-gray-500">Chargement des fleurs...</div>
@@ -136,7 +136,7 @@ export function ProductCatalog() {
                             </div>
 
                             {filteredProducts.length > 0 ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-12">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 md:gap-x-8 gap-y-8 md:gap-y-12">
                                     {filteredProducts.map((product, index) => (
                                         <ProductCard key={product.id} product={product} index={index} />
                                     ))}

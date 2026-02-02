@@ -55,7 +55,7 @@ export function Navbar() {
 
                     {/* Logo */}
                     <Link href="/" className="flex-shrink-0">
-                        <span className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent font-serif hover:opacity-80 transition-opacity">
+                        <span className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent font-serif hover:opacity-80 transition-opacity whitespace-nowrap">
                             Fleuris
                         </span>
                     </Link>

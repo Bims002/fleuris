@@ -80,7 +80,8 @@ export default function AdminOrdersPage() {
                 <p className="text-gray-500">Suivi et gestion des livraisons.</p>
             </header>
 
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+            {/* Desktop Table View */}
+            <div className="hidden md:block bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-gray-50 border-b border-gray-100">
@@ -150,6 +151,61 @@ export default function AdminOrdersPage() {
                         </tbody>
                     </table>
                 </div>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-4">
+                {loading ? (
+                    <div className="text-center py-8 text-gray-500">Chargement...</div>
+                ) : orders.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">Aucune commande pour le moment.</div>
+                ) : (
+                    orders.map((order) => {
+                        const status = statusConfig[order.status] || statusConfig.pending
+                        const StatusIcon = status.icon
+
+                        return (
+                            <div key={order.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <p className="text-xs text-gray-400">{new Date(order.created_at).toLocaleDateString()} à {new Date(order.created_at).toLocaleTimeString().slice(0, 5)}</p>
+                                        <h3 className="font-bold text-gray-900">{order.recipient_name}</h3>
+                                        <p className="text-xs text-gray-500 line-clamp-1">{order.recipient_address}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-bold text-gray-900">{(order.total_amount / 100).toFixed(2)} €</p>
+                                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${status.color}`}>
+                                            <StatusIcon size={10} />
+                                            {status.label}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="pt-4 border-t border-gray-50 flex flex-col gap-3">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-xs text-gray-500 font-medium">Livraison prévue :</span>
+                                        <span className="text-xs font-bold text-gray-900">{new Date(order.delivery_date).toLocaleDateString()}</span>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Modifier le Statut</label>
+                                        <select
+                                            value={order.status}
+                                            onChange={(e) => updateStatus(order.id, e.target.value)}
+                                            className="w-full bg-gray-50 border border-gray-100 text-gray-900 text-sm rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                        >
+                                            <option value="pending">En attente</option>
+                                            <option value="paid">Payée</option>
+                                            <option value="preparing">En préparation</option>
+                                            <option value="shipped">Expédiée</option>
+                                            <option value="delivered">Livrée</option>
+                                            <option value="cancelled">Annulée</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    })
+                )}
             </div>
         </div>
     )
