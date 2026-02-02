@@ -95,13 +95,13 @@ export function ProductCard({ product, index }: ProductCardProps) {
                 </div>
 
                 <div className="p-6">
-                    <div className="mb-2 text-xs font-medium text-purple-600 uppercase tracking-wide">
+                    <div className="mb-2 text-xs font-bold text-purple-700 uppercase tracking-wide">
                         {product.category}
                     </div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-purple-600 transition-colors line-clamp-1">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-purple-700 transition-colors line-clamp-1">
                         {product.name}
                     </h3>
-                    <p className="text-sm text-gray-500 line-clamp-2 mb-4">
+                    <p className="text-sm text-gray-700 font-medium line-clamp-2 mb-4">
                         {product.description}
                     </p>
 
