@@ -111,7 +111,16 @@ export default function CartPage() {
                                                 <div className="flex justify-between items-start mb-2">
                                                     <div>
                                                         <h3 className="text-lg font-bold text-gray-900 font-serif">{item.product.name}</h3>
-                                                        <p className="text-sm text-gray-500 capitalize">Taille : {item.selectedSize === 'classic' ? 'Classique' : item.selectedSize === 'generous' ? 'Généreuse' : 'Exceptionnelle'}</p>
+                                                        <p className="text-sm text-gray-500 capitalize">Taille : {item.selectedSize === 'standard' ? 'Standard' : 'Volumineux'}</p>
+                                                        {item.selectedOptions && item.selectedOptions.length > 0 && (
+                                                            <div className="mt-1 space-y-0.5">
+                                                                {item.product.options?.filter(opt => item.selectedOptions?.includes(opt.id)).map(opt => (
+                                                                    <p key={opt.id} className="text-xs text-purple-600 font-medium">
+                                                                        + {opt.name} ({(opt.price / 100).toFixed(2)} €)
+                                                                    </p>
+                                                                ))}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     <p className="font-bold text-gray-900">{item.price.toFixed(2)} €</p>
                                                 </div>

@@ -41,7 +41,7 @@ export function ProductCard({ product, index }: ProductCardProps) {
                 imageUrl: product.imageUrl || '/placeholder-1.jpg'
             },
             quantity: 1,
-            selectedSize: 'classic',
+            selectedSize: 'standard',
             price: product.price
         })
     }
@@ -77,8 +77,8 @@ export function ProductCard({ product, index }: ProductCardProps) {
                         <button
                             onClick={handleFavorite}
                             className={`p-2 rounded-full backdrop-blur-sm transition-all shadow-sm ${favorited
-                                    ? 'bg-red-50 text-red-500 hover:bg-red-100'
-                                    : 'bg-white/90 text-gray-400 hover:text-red-500 hover:bg-white'
+                                ? 'bg-red-50 text-red-500 hover:bg-red-100'
+                                : 'bg-white/90 text-gray-400 hover:text-red-500 hover:bg-white'
                                 }`}
                         >
                             <Heart size={18} fill={favorited ? "currentColor" : "none"} strokeWidth={favorited ? 0 : 2} />

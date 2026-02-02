@@ -7,8 +7,9 @@ import { createClient } from '@/utils/supabase/client'
 export interface CartItem {
     product: Product
     quantity: number
-    selectedSize: 'classic' | 'generous' | 'exceptional'
-    price: number // Prix unitaire calculé avec la taille
+    selectedSize: 'standard' | 'voluminous'
+    selectedOptions?: string[]
+    price: number // Prix unitaire calculé
 }
 
 interface CartContextType {
@@ -109,17 +110,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
                 // Transformer les items de la DB en format CartItem
                 const cartItems: CartItem[] = (data.items || []).map((item: any) => ({
-                    product: {
-                        id: item.products.id,
-                        name: item.products.name,
-                        price: item.products.price,
-                        images: item.products.images,
-                        description: item.products.description,
-                        category: item.products.category
-                    },
+                    product: item.products,
                     quantity: item.quantity,
                     selectedSize: item.selected_size,
-                    price: calculatePrice(item.products.price / 100, item.selected_size)
+                    selectedOptions: item.selected_options || [],
+                    price: item.price / 100
                 }))
 
                 setItems(cartItems)
@@ -216,7 +211,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const addItem = useCallback((newItem: CartItem) => {
         setItems((currentItems) => {
             const existingItemIndex = currentItems.findIndex(
-                (i) => i.product.id === newItem.product.id && i.selectedSize === newItem.selectedSize
+                (i) =>
+                    i.product.id === newItem.product.id &&
+                    i.selectedSize === newItem.selectedSize &&
+                    JSON.stringify(i.selectedOptions?.sort()) === JSON.stringify(newItem.selectedOptions?.sort())
             )
 
             if (existingItemIndex > -1) {

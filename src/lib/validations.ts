@@ -1,6 +1,13 @@
 import { z } from 'zod'
 
-// Schéma de validation pour les produits
+// Schéma pour une option de produit
+export const productOptionSchema = z.object({
+    id: z.string(),
+    name: z.string().min(1, 'Le nom de l\'option est requis'),
+    price: z.number().min(0, 'Le prix doit être positif'),
+})
+
+// Schéma de validation pour les produits (API/DB)
 export const productSchema = z.object({
     name: z.string().min(3, 'Le nom doit contenir au moins 3 caractères').max(100, 'Le nom ne peut pas dépasser 100 caractères'),
     description: z.string().min(10, 'La description doit contenir au moins 10 caractères').max(500, 'La description ne peut pas dépasser 500 caractères'),
@@ -11,6 +18,9 @@ export const productSchema = z.object({
     images: z.array(z.string().url()).min(1, 'Au moins une image est requise'),
     rating: z.number().min(0).max(5).optional(),
     reviews: z.number().int().min(0).optional(),
+    pricing_type: z.enum(['fixed', 'tiered']).default('fixed'),
+    price_voluminous: z.number().min(0).optional(),
+    options: z.array(productOptionSchema).default([]),
 })
 
 export type ProductData = z.infer<typeof productSchema>
@@ -29,6 +39,9 @@ export const productFormSchema = z.object({
     images: z.array(z.string()).min(1, 'Au moins une image'),
     rating: z.number().optional(),
     reviews: z.number().optional(),
+    pricing_type: z.enum(['fixed', 'tiered']),
+    price_voluminous: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Format invalide').optional(),
+    options: z.array(productOptionSchema).optional(),
 })
 
 export type ProductFormData = z.infer<typeof productFormSchema>
