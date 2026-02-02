@@ -194,10 +194,10 @@ export function ProductDetails({ product }: { product: any }) {
 
                         {/* Action Area */}
                         <div className="flex gap-4 mb-10">
-                            <div className="flex items-center bg-gray-50 rounded-full px-4 border border-gray-200">
-                                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="p-2 hover:text-purple-600"><Minus size={18} /></button>
-                                <span className="w-8 text-center font-bold text-lg">{quantity}</span>
-                                <button onClick={() => setQuantity(quantity + 1)} className="p-2 hover:text-purple-600"><Plus size={18} /></button>
+                            <div className="flex items-center bg-gray-100 rounded-full px-4 border-2 border-gray-300">
+                                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="p-2 text-gray-700 hover:text-purple-600"><Minus size={18} strokeWidth={2.5} /></button>
+                                <span className="w-8 text-center font-bold text-lg text-gray-900">{quantity}</span>
+                                <button onClick={() => setQuantity(quantity + 1)} className="p-2 text-gray-700 hover:text-purple-600"><Plus size={18} strokeWidth={2.5} /></button>
                             </div>
                             <button
                                 onClick={handleAddToCart}
@@ -209,14 +209,14 @@ export function ProductDetails({ product }: { product: any }) {
                         </div>
 
                         {/* Reassurance */}
-                        <div className="grid grid-cols-2 gap-4 pt-8 border-t border-gray-100">
+                        <div className="grid grid-cols-2 gap-4 pt-8 border-t border-gray-200">
                             <div className="flex items-start gap-3">
-                                <Truck className="text-purple-600 shrink-0" size={20} />
-                                <div><h4 className="font-semibold text-sm">Livraison Rapide</h4><p className="text-xs text-gray-500">Sous 24-48h.</p></div>
+                                <Truck className="text-purple-700 shrink-0" size={24} strokeWidth={2.5} />
+                                <div><h4 className="font-bold text-sm text-gray-900">Livraison Rapide</h4><p className="text-sm text-gray-700">Sous 24-48h.</p></div>
                             </div>
                             <div className="flex items-start gap-3">
-                                <ShieldCheck className="text-green-600 shrink-0" size={20} />
-                                <div><h4 className="font-semibold text-sm">Fraîcheur</h4><p className="text-xs text-gray-500">Garantie 7 jours.</p></div>
+                                <ShieldCheck className="text-green-700 shrink-0" size={24} strokeWidth={2.5} />
+                                <div><h4 className="font-bold text-sm text-gray-900">Fraîcheur</h4><p className="text-sm text-gray-700">Garantie 7 jours.</p></div>
                             </div>
                         </div>
                     </div>
