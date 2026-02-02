@@ -4,7 +4,7 @@ export default function robots(): MetadataRoute.Robots {
     return {
         rules: [
             {
-                userAgent: ['*', 'GPTBot', 'ChatGPT-User', 'Google-Extended'],
+                userAgent: '*',
                 allow: '/',
                 disallow: [
                     '/admin/',
@@ -13,6 +13,10 @@ export default function robots(): MetadataRoute.Robots {
                     '/account/',
                     '/api/',
                 ],
+            },
+            {
+                userAgent: ['GPTBot', 'ChatGPT-User', 'Google-Extended', 'OAI-SearchBot'],
+                allow: '/',
             }
         ],
         sitemap: 'https://fleuris.store/sitemap.xml',
