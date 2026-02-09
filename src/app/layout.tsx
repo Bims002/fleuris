@@ -6,6 +6,7 @@ import { WishlistProvider } from "@/context/wishlist-context";
 import { Footer } from "@/components/footer";
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { CookieConsentBanner } from '@/components/cookie-consent';
+import { HotjarTracking } from '@/components/hotjar-tracking';
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -104,6 +105,9 @@ export default function RootLayout({
 
         {/* Cookie Consent Banner */}
         <CookieConsentBanner />
+
+        {/* Hotjar Behavior Analytics */}
+        <HotjarTracking />
       </body>
     </html>
   );
