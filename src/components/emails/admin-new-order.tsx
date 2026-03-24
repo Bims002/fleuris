@@ -1,15 +1,3 @@
-
-import {
-    Body,
-    Container,
-    Head,
-    Heading,
-    Hr,
-    Html,
-    Preview,
-    Section,
-    Text,
-} from '@react-email/components';
 import * as React from 'react';
 
 interface AdminNewOrderEmailProps {
@@ -22,107 +10,51 @@ interface AdminNewOrderEmailProps {
     }>;
 }
 
-export const AdminNewOrderEmail = ({
+export const AdminNewOrderEmail: React.FC<AdminNewOrderEmailProps> = ({
     orderId,
     customerName,
     totalAmount,
     items,
-}: AdminNewOrderEmailProps) => (
-    <Html>
-        <Head />
-        <Preview>Nouvelle commande sur Fleuris ! 🌸</Preview>
-        <Body style={main}>
-            <Container style={container}>
-                <Heading style={h1}>Nouvelle Commande Recevable !</Heading>
-                <Text style={text}>
+}) => (
+    <html>
+        <head>
+            <meta charSet="utf-8" />
+        </head>
+        <body style={{ fontFamily: 'Arial, sans-serif', lineHeight: '1.6', color: '#333', maxWidth: '600px', margin: '0 auto', padding: '20px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '30px', borderBottom: '3px solid #9333ea', paddingBottom: '20px' }}>
+                <h1 style={{ color: '#9333ea', margin: '0', fontSize: '28px' }}>Nouvelle Commande ! 💰</h1>
+            </div>
+
+            <div style={{ backgroundColor: '#f3f4f6', padding: '20px', borderRadius: '8px', marginBottom: '30px' }}>
+                <p style={{ margin: '0 0 10px 0', fontSize: '16px' }}>
                     Une nouvelle commande vient d'être payée par <strong>{customerName}</strong>.
-                </Text>
-                <Section style={section}>
-                    <Text style={label}>Commande ID:</Text>
-                    <Text style={value}>#{orderId.slice(0, 8)}</Text>
-                    
-                    <Text style={label}>Total:</Text>
-                    <Text style={value}>{totalAmount.toFixed(2)}€</Text>
-                </Section>
-                <Hr style={hr} />
-                <Section>
-                    <Text style={h2}>Articles :</Text>
+                </p>
+                <p style={{ margin: '0', fontSize: '14px', color: '#666' }}>
+                    ID Commande : #{orderId.slice(0, 8)}<br />
+                    Montant total : <strong>{totalAmount.toFixed(2)}€</strong>
+                </p>
+            </div>
+
+            <div style={{ marginBottom: '30px' }}>
+                <h3 style={{ color: '#333', borderBottom: '2px solid #e5e7eb', paddingBottom: '10px' }}>Articles commandés</h3>
+                <ul style={{ listStyle: 'none', padding: '0', margin: '15px 0' }}>
                     {items.map((item, index) => (
-                        <Text key={index} style={itemText}>
-                            • {item.quantity}x {item.name}
-                        </Text>
+                        <li key={index} style={{ padding: '10px 0', borderBottom: '1px solid #f3f4f6' }}>
+                            <strong>{item.quantity}x</strong> {item.name}
+                        </li>
                     ))}
-                </Section>
-                <Hr style={hr} />
-                <Text style={footer}>
-                    Fleuris - Gestion des commandes
-                </Text>
-            </Container>
-        </Body>
-    </Html>
+                </ul>
+            </div>
+
+            <div style={{ textAlign: 'center', marginTop: '30px' }}>
+                <a href={`${process.env.NEXT_PUBLIC_SITE_URL}/admin/orders`} style={{ backgroundColor: '#9333ea', color: 'white', padding: '14px 32px', borderRadius: '8px', textDecoration: 'none', fontWeight: 'bold' }}>
+                    📦 Gérer la commande
+                </a>
+            </div>
+
+            <div style={{ marginTop: '40px', borderTop: '1px solid #e5e7eb', paddingTop: '20px', textAlign: 'center', color: '#666', fontSize: '12px' }}>
+                <p>Fleuris - Notification Système</p>
+            </div>
+        </body>
+    </html>
 );
-
-const main = {
-    backgroundColor: '#ffffff',
-    fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif',
-};
-
-const container = {
-    margin: '0 auto',
-    padding: '20px 0 48px',
-    maxWidth: '580px',
-};
-
-const h1 = {
-    color: '#333',
-    fontSize: '24px',
-    fontWeight: 'bold',
-    textAlign: 'center' as const,
-    margin: '30px 0',
-};
-
-const h2 = {
-    color: '#333',
-    fontSize: '18px',
-    fontWeight: 'bold',
-    margin: '10px 0',
-};
-
-const section = {
-    padding: '24px',
-    border: '1px solid #f0f0f0',
-    borderRadius: '8px',
-    backgroundColor: '#f9f9f9',
-};
-
-const label = {
-    color: '#666',
-    fontSize: '12px',
-    textTransform: 'uppercase' as const,
-    marginBottom: '4px',
-};
-
-const value = {
-    color: '#333',
-    fontSize: '16px',
-    fontWeight: 'bold',
-    marginBottom: '16px',
-};
-
-const hr = {
-    borderColor: '#e6ebf1',
-    margin: '20px 0',
-};
-
-const itemText = {
-    color: '#333',
-    fontSize: '14px',
-    margin: '4px 0',
-};
-
-const footer = {
-    color: '#8898aa',
-    fontSize: '12px',
-    textAlign: 'center' as const,
-    marginTop: '32px',
-};
