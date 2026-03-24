@@ -5,6 +5,7 @@ import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 import { resend } from "@/lib/resend";
 import { OrderConfirmationEmail } from "@/components/emails/order-confirmation";
+import { AdminNewOrderEmail } from "@/components/emails/admin-new-order";
 import { render } from '@react-email/render';
 import { formatDeliveryDate, formatDeliveryTime } from "@/lib/date-utils";
 import * as React from 'react';
@@ -164,6 +165,28 @@ export async function POST(req: NextRequest) {
                 } else {
                     console.warn(`⚠️ No customer email found for Order ${order.id}`);
                 }
+
+                // Send notification to admin (SANS notifier le client)
+                const adminEmail = process.env.NOTIFICATION_EMAIL || 'bjimeme@gmail.com';
+                const adminEmailElement = React.createElement(AdminNewOrderEmail, {
+                    orderId: order.id,
+                    customerName: order.recipient_name,
+                    totalAmount: order.total_amount / 100,
+                    items: order.order_items.map((item: any) => ({
+                        name: item.products.name,
+                        quantity: item.quantity,
+                    })),
+                });
+
+                const adminEmailHtml = await render(adminEmailElement);
+
+                await resend.emails.send({
+                    from: 'Fleuris <alertes@fleuris.store>',
+                    to: adminEmail,
+                    subject: `Nouvelle commande ! #${order.id.slice(0, 8)} 💰`,
+                    html: adminEmailHtml,
+                });
+                console.log(`📧 Admin notification sent to ${adminEmail}`);
             } catch (emailError) {
                 console.error("❌ Error in email sending block:", emailError);
             }

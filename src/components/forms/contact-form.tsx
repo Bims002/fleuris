@@ -28,9 +28,24 @@ export function ContactForm() {
             return;
         }
 
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        console.log('Contact form submitted:', data)
-        reset()
+        try {
+            const response = await fetch('/api/contact', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+
+            if (!response.ok) {
+                throw new Error('Erreur lors de l\'envoi du message');
+            }
+
+            reset();
+        } catch (error) {
+            console.error('Submission error:', error);
+            alert('Une erreur est survenue lors de l\'envoi. Veuillez réessayer.');
+        }
     }
 
     return (
